@@ -2,13 +2,63 @@
 
 #define KEY_TEXT_COLOR 0
 #define KEY_INVERT_COLORS 1
+#define KEY_TEMPERATURE 2
+#define KEY_TEMPERATURE_IN_C 3
+#define KEY_CONDITIONS 4
+#define KEY_SHAKE_FOR_WEATHER 5
+#define KEY_USE_CELSIUS 6
 	
 static Window *s_main_window;
-static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer;
-static GFont s_time_font, s_date_font;
-static Layer *s_batt_layer, *s_scharge_layer;
+static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
+static GFont s_time_font, s_date_font, s_weather_font;
+static Layer *s_batt_layer, *s_scharge_layer, *s_weather_layer, *s_weather_layer_unanimated;
 static bool invert_colors = 0;
+static bool use_celsius = 0;
+static bool shake_for_weather = 1;
 
+void on_animation_stopped(Animation *anim, bool finished, void *context) {
+    //Free the memory used by the Animation
+    property_animation_destroy((PropertyAnimation*) anim);
+}
+ 
+void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int delay) {
+    //Declare animation
+    PropertyAnimation *anim = property_animation_create_layer_frame(layer, start, finish);
+ 
+    //Set characteristics
+    animation_set_duration((Animation*) anim, duration);
+    animation_set_delay((Animation*) anim, delay);
+ 
+    //Set stopped handler to free memory
+    AnimationHandlers handlers = {
+        //The reference to the stopped handler is the only one in the array
+        .stopped = (AnimationStoppedHandler) on_animation_stopped
+    };
+    animation_set_handlers((Animation*) anim, handlers, NULL);
+ 
+    //Start animation!
+    animation_schedule((Animation*) anim);
+}
+
+static void animate_layers() {
+// Weather moves in from bottom
+	GRect wins = GRect(0, 182, 144, 14);
+	GRect winf = GRect(0, 150, 144, 14);
+	animate_layer(text_layer_get_layer(s_conditions_layer), &wins, &winf, 1000, 0);
+
+	GRect wouts = GRect(0, 150, 144, 14);
+	GRect woutf = GRect(0, 182, 144, 14);
+	animate_layer(text_layer_get_layer(s_conditions_layer), &wouts, &woutf, 1000, 5000);
+
+// Temp moves in from top
+	GRect tins = GRect(0, -32, 144, 14);
+	GRect tinf = GRect(0, 0, 144, 14);
+	animate_layer(text_layer_get_layer(s_temp_layer), &tins, &tinf, 1000, 0);
+
+	GRect touts = GRect(0, 0, 144, 14);
+	GRect toutf = GRect(0, -32, 144, 14);
+	animate_layer(text_layer_get_layer(s_temp_layer), &touts, &toutf, 1000, 5000);
+}
 
 static void update_time() {
   time_t temp = time(NULL);
@@ -70,11 +120,30 @@ static void batt_layer_draw(Layer *layer, GContext *ctx) {
 	graphics_fill_rect(ctx, GRect(2, 92, 140-(((100-pct)/10)*14), 2), 0, GCornerNone); // Draw battery
 }
 
+static void update_layers() {
+	if (shake_for_weather == 0) {
+	  	layer_set_hidden(s_weather_layer, true);
+	  	layer_set_hidden(s_weather_layer_unanimated, false);
+	  	layer_mark_dirty(s_weather_layer);
+	  	layer_mark_dirty(s_weather_layer_unanimated);
+	  } else {
+	  	layer_set_hidden(s_weather_layer, false);
+	  	layer_set_hidden(s_weather_layer_unanimated, true);
+	  	layer_mark_dirty(s_weather_layer);
+	  	layer_mark_dirty(s_weather_layer_unanimated);
+	  }
+}
+
 static void set_background_and_text_color(int color) {
   #ifdef PBL_COLOR
 		GColor text_color = GColorFromHEX(color);
 		text_layer_set_text_color(s_time_layer, text_color);
 		text_layer_set_text_color(s_date_layer, text_color);
+		text_layer_set_text_color(s_temp_layer, text_color);
+		text_layer_set_text_color(s_conditions_layer, text_color);
+		text_layer_set_text_color(s_temp_layer_unanimated, text_color);
+		text_layer_set_text_color(s_conditions_layer_unanimated, text_color);
+		text_layer_set_text_color(s_charge_layer, text_color);
 
 		window_set_background_color(s_main_window, gcolor_legible_over(text_color));
   #else
@@ -86,8 +155,17 @@ static void set_background_and_text_color(int color) {
 
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
+  static char temp_buffer[15];
+  static char temp_c_buffer[15];
+  static char conditions_buffer[100];
+
   Tuple *text_color_t = dict_find(iter, KEY_TEXT_COLOR);
   Tuple *invert_colors_t = dict_find(iter, KEY_INVERT_COLORS);
+  Tuple *temperature_t = dict_find(iter, KEY_TEMPERATURE);
+  Tuple *temperature_in_c_t = dict_find(iter, KEY_TEMPERATURE_IN_C);
+  Tuple *conditions_t = dict_find(iter, KEY_CONDITIONS);
+  Tuple *shake_for_weather_t = dict_find(iter, KEY_SHAKE_FOR_WEATHER);
+  Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS);
 
   if (text_color_t) {
     int text_color = text_color_t->value->int32;
@@ -110,20 +188,78 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 	    	window_set_background_color(s_main_window, GColorWhite);
 			text_layer_set_text_color(s_time_layer, GColorBlack);
 			text_layer_set_text_color(s_date_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
 	    } else {
 	    	window_set_background_color(s_main_window, GColorBlack);
 			text_layer_set_text_color(s_time_layer, GColorWhite);
 			text_layer_set_text_color(s_date_layer, GColorWhite);
+			text_layer_set_text_color(s_temp_layer, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer, GColorWhite);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
 	    }
 	#endif
     }
   }
+
+  if (use_celsius_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_USE_CELSIUS received!");
+
+  	use_celsius = use_celsius_t->value->int8;
+
+  	persist_write_int(KEY_USE_CELSIUS, use_celsius);
+  }
+
+  if (shake_for_weather_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHAKE_FOR_WEATHER received!");
+
+  	shake_for_weather = shake_for_weather_t->value->int8;
+
+  	persist_write_int(KEY_SHAKE_FOR_WEATHER, shake_for_weather);
+  }
+
+  if (temperature_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE received!");
+
+  	snprintf(temp_buffer, sizeof(temp_buffer), "%d degrees", (int)temperature_t->value->int32);
+  }
+
+  if (temperature_in_c_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE_IN_C received!");
+
+  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d degrees", (int)temperature_in_c_t->value->int32);
+  }
+
+  if (conditions_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
+
+  	snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_t->value->cstring);
+  	text_layer_set_text(s_conditions_layer, conditions_buffer);
+  	text_layer_set_text(s_conditions_layer_unanimated, conditions_buffer);
+  }
+
+  if (use_celsius == 1) {
+  	text_layer_set_text(s_temp_layer, temp_c_buffer);
+  	text_layer_set_text(s_temp_layer_unanimated, temp_c_buffer);
+  } else {
+  	text_layer_set_text(s_temp_layer, temp_buffer);
+  	text_layer_set_text(s_temp_layer_unanimated, temp_buffer);
+  }
+
+  update_layers();
 }
 
 static void main_window_load(Window *window) {
 	// Create fonts
 	s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_50));
 	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_22));
+	s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_14));
+
+	s_weather_layer = layer_create(GRect(0, 0, 144, 168));
+	s_weather_layer_unanimated = layer_create(GRect(0, 0, 144, 168));
 	
 	// Battery bar
 	s_batt_layer = layer_create(GRect(0, 0, 144, 168));
@@ -131,13 +267,8 @@ static void main_window_load(Window *window) {
 	
 	// Charging status
 	s_charge_layer = text_layer_create(GRect(0, 110, 144, 168));
-	#ifdef PBL_COLOR
-		text_layer_set_text_color(s_charge_layer, GColorGreen);
-	#else
-		text_layer_set_text_color(s_charge_layer, GColorWhite);
-	#endif
-		text_layer_set_background_color(s_charge_layer, GColorClear);
-	text_layer_set_font(s_charge_layer, s_date_font);
+	text_layer_set_background_color(s_charge_layer, GColorClear);
+	text_layer_set_font(s_charge_layer, s_weather_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
 	text_layer_set_text(s_charge_layer, "CHRG");
 	
@@ -155,12 +286,39 @@ static void main_window_load(Window *window) {
 	text_layer_set_background_color(s_date_layer, GColorClear);
 	text_layer_set_font(s_date_layer, s_date_font);
 	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+
+	s_temp_layer = text_layer_create(GRect(0, -32, 144, 14));
+	text_layer_set_background_color(s_temp_layer, GColorClear);
+	text_layer_set_font(s_temp_layer, s_weather_font);
+	text_layer_set_text_alignment(s_temp_layer, GTextAlignmentCenter);
+
+	s_conditions_layer = text_layer_create(GRect(0, 182, 144, 14));
+	text_layer_set_font(s_conditions_layer, s_weather_font);
+	text_layer_set_background_color(s_conditions_layer, GColorClear);
+	text_layer_set_text_alignment(s_conditions_layer, GTextAlignmentCenter);
+
+	s_temp_layer_unanimated = text_layer_create(GRect(0, 0, 144, 14));
+	text_layer_set_background_color(s_temp_layer_unanimated, GColorClear);
+	text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
+	text_layer_set_text_alignment(s_temp_layer_unanimated, GTextAlignmentCenter);
+
+	s_conditions_layer_unanimated = text_layer_create(GRect(0, 150, 144, 14));
+	text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
+	text_layer_set_background_color(s_conditions_layer_unanimated, GColorClear);
+	text_layer_set_text_alignment(s_conditions_layer_unanimated, GTextAlignmentCenter);
 	
 	layer_add_child(window_get_root_layer(window), s_batt_layer);
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
 	layer_add_child(window_get_root_layer(window), s_scharge_layer);
 	layer_add_child(s_scharge_layer, text_layer_get_layer(s_charge_layer));
+
+	layer_add_child(window_get_root_layer(window), s_weather_layer);
+	layer_add_child(window_get_root_layer(window), s_weather_layer_unanimated);
+	layer_add_child(s_weather_layer, text_layer_get_layer(s_temp_layer));
+	layer_add_child(s_weather_layer, text_layer_get_layer(s_conditions_layer));
+	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_temp_layer_unanimated));
+	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_conditions_layer_unanimated));
 	
 	if (persist_exists(KEY_TEXT_COLOR)) {
     	int text_color = persist_read_int(KEY_TEXT_COLOR);
@@ -180,13 +338,30 @@ static void main_window_load(Window *window) {
 	    	window_set_background_color(s_main_window, GColorWhite);
 			text_layer_set_text_color(s_time_layer, GColorBlack);
 			text_layer_set_text_color(s_date_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
 	    } else {
 	    	window_set_background_color(s_main_window, GColorBlack);
 			text_layer_set_text_color(s_time_layer, GColorWhite);
 			text_layer_set_text_color(s_date_layer, GColorWhite);
-	    }
+			text_layer_set_text_color(s_temp_layer, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer, GColorWhite);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
+		}
 	#endif
 
+	if (persist_exists(KEY_USE_CELSIUS)) {
+  	  use_celsius = persist_read_int(KEY_USE_CELSIUS);
+  	}
+
+  	if (persist_exists(KEY_SHAKE_FOR_WEATHER)) {
+  	  shake_for_weather = persist_read_int(KEY_SHAKE_FOR_WEATHER);
+  	}
+
+  	update_layers();
 	update_time();
 }
 
@@ -194,15 +369,31 @@ static void main_window_unload(Window *window) {
 	text_layer_destroy(s_time_layer);
 	text_layer_destroy(s_date_layer);
 	text_layer_destroy(s_charge_layer);
+	text_layer_destroy(s_conditions_layer);
+	text_layer_destroy(s_conditions_layer_unanimated);
+	text_layer_destroy(s_temp_layer);
+	text_layer_destroy(s_temp_layer_unanimated);
 	layer_destroy(s_batt_layer);
 	layer_destroy(s_scharge_layer);
+	layer_destroy(s_weather_layer);
+	layer_destroy(s_weather_layer_unanimated);
+
 	fonts_unload_custom_font(s_time_font);
 	fonts_unload_custom_font(s_date_font);
+	fonts_unload_custom_font(s_weather_font);
 }
 
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   update_time();
+}
+
+static void tap_handler(AccelAxisType axis, int32_t direction) {
+	if (shake_for_weather == 0) {
+		// Do not animate
+	} else {
+		animate_layers();
+	}
 }
 
 static void init() {
@@ -215,7 +406,8 @@ static void init() {
 
   window_stack_push(s_main_window, true);
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-	battery_state_service_subscribe(battery_handler);
+  battery_state_service_subscribe(battery_handler);
+  accel_tap_service_subscribe(tap_handler);
 	
 	BatteryChargeState state = battery_state_service_peek();
 	bool charging = state.is_charging;
