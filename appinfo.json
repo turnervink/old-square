@@ -1,0 +1,42 @@
+{
+    "appKeys": {
+        "textColor": 0,
+        "invertColors": 1
+    },
+    "capabilities": [
+        "configurable"
+    ],
+    "companyName": "Turner Vink",
+    "longName": "Square",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_14",
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_50",
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_22",
+                "type": "font"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "Square",
+    "targetPlatforms": [
+        "aplite",
+        "basalt"
+    ],
+    "uuid": "cb332373-4ee5-4c5c-8912-4f62af2d756c",
+    "versionLabel": "2.5",
+    "watchapp": {
+        "watchface": true
+    }
+}
