@@ -79,7 +79,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-	var url = 'http://49994a02.ngrok.com';
+	var url = 'http://turnervink.github.io/square-config/';
 
 	console.log('Showing configuration page: ' + url);
 

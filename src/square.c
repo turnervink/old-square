@@ -153,6 +153,25 @@ static void set_background_and_text_color(int color) {
   #endif
 }
 
+static void inverter() {
+	if (invert_colors == 1) {
+	    	window_set_background_color(s_main_window, GColorWhite);
+			text_layer_set_text_color(s_time_layer, GColorBlack);
+			text_layer_set_text_color(s_date_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
+	    } else {
+	    	window_set_background_color(s_main_window, GColorBlack);
+			text_layer_set_text_color(s_time_layer, GColorWhite);
+			text_layer_set_text_color(s_date_layer, GColorWhite);
+			text_layer_set_text_color(s_temp_layer, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer, GColorWhite);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
+	    }
+}
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   static char temp_buffer[15];
@@ -171,16 +190,26 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     int text_color = text_color_t->value->int32;
 
     persist_write_int(KEY_TEXT_COLOR, text_color);
+    #ifdef PBL_COLOR
+    	set_background_and_text_color(text_color);
+    #else
 
-    set_background_and_text_color(text_color);
+    #endif
   }
 
   if (invert_colors_t) {
     invert_colors = invert_colors_t->value->int8;
 
+
     persist_write_int(KEY_INVERT_COLORS, invert_colors);
 
-  if (invert_colors == 1) {
+    #ifdef PBL_COLOR
+
+    #else
+    	inverter();
+    #endif
+
+  /*if (invert_colors == 1) {
     #ifdef PBL_COLOR
     	// Do not try to invert
     #else
@@ -202,7 +231,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
 	    }
 	#endif
-    }
+    }*/
   }
 
   if (use_celsius_t) {
@@ -334,7 +363,8 @@ static void main_window_load(Window *window) {
     #ifdef PBL_COLOR
     	// Do not try to invert
     #else
-	    if (invert_colors == 1) {
+    	inverter();
+	    /*if (invert_colors == 1) {
 	    	window_set_background_color(s_main_window, GColorWhite);
 			text_layer_set_text_color(s_time_layer, GColorBlack);
 			text_layer_set_text_color(s_date_layer, GColorBlack);
@@ -350,7 +380,7 @@ static void main_window_load(Window *window) {
 			text_layer_set_text_color(s_conditions_layer, GColorWhite);
 			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
 			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
-		}
+		}*/
 	#endif
 
 	if (persist_exists(KEY_USE_CELSIUS)) {
