@@ -141,13 +141,9 @@ static void update_layers() {
 	if (shake_for_weather == 0) {
 	  	layer_set_hidden(s_weather_layer, true);
 	  	layer_set_hidden(s_weather_layer_unanimated, false);
-	  	layer_mark_dirty(s_weather_layer);
-	  	layer_mark_dirty(s_weather_layer_unanimated);
 	  } else {
 	  	layer_set_hidden(s_weather_layer, false);
 	  	layer_set_hidden(s_weather_layer_unanimated, true);
-	  	layer_mark_dirty(s_weather_layer);
-	  	layer_mark_dirty(s_weather_layer_unanimated);
 	  }
 }
 
@@ -366,28 +362,29 @@ static void main_window_load(Window *window) {
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_temp_layer_unanimated));
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_conditions_layer_unanimated));
 	
-	if (persist_exists(KEY_TEXT_COLOR)) {
-    	int text_color = persist_read_int(KEY_TEXT_COLOR);
-    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists!");
-    	set_background_and_text_color(text_color);
-    } else {
-    	set_background_and_text_color(0xFFFFFF); // white
-    }
+	#ifdef PBL_COLOR
+		if (persist_exists(KEY_TEXT_COLOR)) {
+	    	int text_color = persist_read_int(KEY_TEXT_COLOR);
+	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists!");
+	    	set_background_and_text_color(text_color);
+	    } else {
+	    	set_background_and_text_color(0xFFFFFF); // white
+	    }
+	#else
 
-    if (persist_exists(KEY_INVERT_COLORS)) {
-    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS exists!");
-    	invert_colors = persist_read_int(KEY_INVERT_COLORS);
-    }
+	#endif
 
-    if (invert_colors == 1) {
-	    #ifdef PBL_COLOR
-	    	// Do not try to invert
-	    #else
-	    	inverter();
-		#endif
-	} else {
-		// don't invert
-	}
+
+	#ifdef PBL_BW
+	    if (persist_exists(KEY_INVERT_COLORS)) {
+	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS exists!");
+	    	invert_colors = persist_read_int(KEY_INVERT_COLORS);
+	    }
+
+	    inverter();
+	#else
+
+	#endif
 
 	if (persist_exists(KEY_USE_CELSIUS)) {
   	  use_celsius = persist_read_int(KEY_USE_CELSIUS);
@@ -439,8 +436,10 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
 	if (shake_for_weather == 0) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Not animating.");
 		// Do not animate
 	} else {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Animating");
 		animate_layers();
 	}
 }
@@ -483,4 +482,11 @@ int main(void) {
   init();
   app_event_loop();
   deinit();
+  if (shake_for_weather == 0) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "It's 0");
+  } else if (shake_for_weather == 1) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "It's 1");
+  } else {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "It's something else");
+  }
 }
