@@ -40,8 +40,25 @@ void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int 
     animation_schedule((Animation*) anim);
 }
 
+static void init_animations() {
+	GRect timestart = GRect(0, -60, 144, 168);
+	GRect timefinish = GRect(0, 40, 144, 168);
+
+	GRect datestart = GRect(0, 190, 144, 168);
+	GRect datefinish = GRect(0, 90, 144, 168);
+
+	GRect battstart = GRect(-140, 0, 144, 168);
+	GRect battfinish = GRect(0, 0, 144, 168);
+
+	int animlen = 500;
+
+	animate_layer(text_layer_get_layer(s_time_layer), &timestart, &timefinish, animlen, 0);
+	animate_layer(text_layer_get_layer(s_date_layer), &datestart, &datefinish, animlen, 0);
+	animate_layer(s_batt_layer, &battstart, &battfinish, animlen, 0);
+}
+
 static void animate_layers() {
-// Weather moves in from bottom
+	// Weather moves in from bottom
 	GRect wins = GRect(0, 182, 144, 14);
 	GRect winf = GRect(0, 150, 144, 14);
 	animate_layer(text_layer_get_layer(s_conditions_layer), &wins, &winf, 1000, 0);
@@ -50,7 +67,7 @@ static void animate_layers() {
 	GRect woutf = GRect(0, 182, 144, 14);
 	animate_layer(text_layer_get_layer(s_conditions_layer), &wouts, &woutf, 1000, 5000);
 
-// Temp moves in from top
+	// Temp moves in from top
 	GRect tins = GRect(0, -32, 144, 14);
 	GRect tinf = GRect(0, 0, 144, 14);
 	animate_layer(text_layer_get_layer(s_temp_layer), &tins, &tinf, 1000, 0);
@@ -291,7 +308,7 @@ static void main_window_load(Window *window) {
 	s_weather_layer_unanimated = layer_create(GRect(0, 0, 144, 168));
 	
 	// Battery bar
-	s_batt_layer = layer_create(GRect(0, 0, 144, 168));
+	s_batt_layer = layer_create(GRect(-140, 0, 144, 168));
 	layer_set_update_proc(s_batt_layer, batt_layer_draw);
 	
 	// Charging status
@@ -305,13 +322,13 @@ static void main_window_load(Window *window) {
 	layer_set_hidden(s_scharge_layer, true);
 	
 	// Time layer
-	s_time_layer = text_layer_create(GRect(0, 40, 144, 168));
+	s_time_layer = text_layer_create(GRect(0, -60, 144, 168));
 	text_layer_set_background_color(s_time_layer, GColorClear);
 	text_layer_set_font(s_time_layer, s_time_font);
 	text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 	
 	// Date layer
-	s_date_layer = text_layer_create(GRect(0, 90, 144, 168));
+	s_date_layer = text_layer_create(GRect(0, 190, 144, 168));
 	text_layer_set_background_color(s_date_layer, GColorClear);
 	text_layer_set_font(s_date_layer, s_date_font);
 	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
@@ -353,6 +370,8 @@ static void main_window_load(Window *window) {
     	int text_color = persist_read_int(KEY_TEXT_COLOR);
     	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists!");
     	set_background_and_text_color(text_color);
+    } else {
+    	set_background_and_text_color(0xFFFFFF); // white
     }
 
     if (persist_exists(KEY_INVERT_COLORS)) {
@@ -360,28 +379,15 @@ static void main_window_load(Window *window) {
     	invert_colors = persist_read_int(KEY_INVERT_COLORS);
     }
 
-    #ifdef PBL_COLOR
-    	// Do not try to invert
-    #else
-    	inverter();
-	    /*if (invert_colors == 1) {
-	    	window_set_background_color(s_main_window, GColorWhite);
-			text_layer_set_text_color(s_time_layer, GColorBlack);
-			text_layer_set_text_color(s_date_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
-	    } else {
-	    	window_set_background_color(s_main_window, GColorBlack);
-			text_layer_set_text_color(s_time_layer, GColorWhite);
-			text_layer_set_text_color(s_date_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
-		}*/
-	#endif
+    if (invert_colors == 1) {
+	    #ifdef PBL_COLOR
+	    	// Do not try to invert
+	    #else
+	    	inverter();
+		#endif
+	} else {
+		// don't invert
+	}
 
 	if (persist_exists(KEY_USE_CELSIUS)) {
   	  use_celsius = persist_read_int(KEY_USE_CELSIUS);
@@ -415,7 +421,7 @@ static void main_window_unload(Window *window) {
 
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_time();
+	update_time();
 
 	// Update weather every 30 minutes
 	if(tick_time->tm_min % 30 == 0) {
@@ -462,7 +468,9 @@ static void init() {
 	}
 
 	app_message_register_inbox_received(inbox_received_handler);
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+  	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+
+  	init_animations();
 }
 
 static void deinit() {

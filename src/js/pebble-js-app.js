@@ -9,34 +9,34 @@ var xhrRequest = function (url, type, callback) {
 
 function locationSuccess(pos) {
   // Construct URL
-	var url = 'https://api.forecast.io/forecast/APIKEY/' + 
-	pos.coords.latitude + ',' + pos.coords.longitude;
-	
-	console.log("Lat is " + pos.coords.latitude);
-	console.log("Lon is " + pos.coords.longitude);
+  var url = 'https://api.forecast.io/forecast/APIKEY/' + 
+  pos.coords.latitude + ',' + pos.coords.longitude;
+  
+  console.log("Lat is " + pos.coords.latitude);
+  console.log("Lon is " + pos.coords.longitude);
 
   // Send request to forecast.io
   xhrRequest(url, 'GET', 
     function(responseText) {
       // responseText contains a JSON object with weather info
       var json = JSON.parse(responseText);
-	  console.log(JSON.parse(responseText));
+    console.log(JSON.parse(responseText));
 
       var temperature = Math.round(json.currently.temperature);
       console.log("Temperature is " + temperature);
-			
-	  var temperaturec = Math.round((json.currently.temperature - 32) * 5/9);
-	  console.log("Temperature in Celsius is " + temperaturec);
+      
+    var temperaturec = Math.round((json.currently.temperature - 32) * 5/9);
+    console.log("Temperature in Celsius is " + temperaturec);
 
       // Conditions
       var conditions = json.currently.summary;      
       console.log("Conditions are " + conditions);
-			
+      
       // Assemble dictionary using our keys
       var dictionary = {
         "KEY_TEMPERATURE": temperature,
-		"KEY_TEMPERATURE_IN_C": temperaturec,
-		"KEY_CONDITIONS": conditions,
+    "KEY_TEMPERATURE_IN_C": temperaturec,
+    "KEY_CONDITIONS": conditions,
       };
 
       // Send to Pebble
@@ -65,9 +65,9 @@ function getWeather() {
 }
 
 Pebble.addEventListener('ready', function() {
-	console.log('PebbleKit JS Ready! Getting weather.');
+  console.log('PebbleKit JS Ready! Getting weather.');
 
-	getWeather();
+  getWeather();
 });
 
 Pebble.addEventListener('appmessage',
@@ -79,28 +79,28 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-	var url = 'http://turnervink.github.io/square-config/';
+  var url = 'http://turnervink.github.io/square-config/';
 
-	console.log('Showing configuration page: ' + url);
+  console.log('Showing configuration page: ' + url);
 
-	Pebble.openURL(url);
+  Pebble.openURL(url);
 });
 
 Pebble.addEventListener('webviewclosed', function(e) {
-	var configData = JSON.parse(decodeURIComponent(e.response));
+  var configData = JSON.parse(decodeURIComponent(e.response));
 
-	console.log('Configuration page returned: ' + JSON.stringify(configData));
+  console.log('Configuration page returned: ' + JSON.stringify(configData));
 
-	if (configData.textColor) {
-		Pebble.sendAppMessage({
-			textColor: parseInt(configData.textColor, 16),
-			invertColors: configData.invertColors ? 1 : 0,
-			shakeWeather: configData.shakeWeather ? 1 : 0,
-			useCelsius: configData.useCelsius ? 1 : 0
-		}, function() {
-			console.log('Send successful!');
-		}, function() {
-			console.log('Send failed!');
-		});
-	}
+  if (configData.textColor) {
+    Pebble.sendAppMessage({
+      textColor: parseInt(configData.textColor, 16),
+      invertColors: configData.invertColors ? 1 : 0,
+      shakeWeather: configData.shakeWeather ? 1 : 0,
+      useCelsius: configData.useCelsius ? 1 : 0
+    }, function() {
+      console.log('Send successful!');
+    }, function() {
+      console.log('Send failed!');
+    });
+  }
 });
