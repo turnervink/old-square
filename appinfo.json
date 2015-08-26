@@ -31,6 +31,12 @@
                 "file": "fonts/square.ttf",
                 "name": "FONT_SQUARE_22",
                 "type": "font"
+            },
+            {
+                "menuIcon": true,
+                "file": "square_icon.png",
+                "name": "IMAGE_ICON",
+                "type": "png"
             }
         ]
     },
