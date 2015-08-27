@@ -7,6 +7,7 @@
 #define KEY_CONDITIONS 4
 #define KEY_SHAKE_FOR_WEATHER 5
 #define KEY_USE_CELSIUS 6
+#define KEY_BACKGROUND_COLOR 7
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
@@ -147,7 +148,7 @@ static void update_layers() {
 	  }
 }
 
-static void set_background_and_text_color(int color) {
+static void set_text_color(int color) {
   #ifdef PBL_COLOR
 		GColor text_color = GColorFromHEX(color);
 		text_layer_set_text_color(s_time_layer, text_color);
@@ -157,13 +158,18 @@ static void set_background_and_text_color(int color) {
 		text_layer_set_text_color(s_temp_layer_unanimated, text_color);
 		text_layer_set_text_color(s_conditions_layer_unanimated, text_color);
 		text_layer_set_text_color(s_charge_layer, text_color);
-
-		window_set_background_color(s_main_window, gcolor_legible_over(text_color));
   #else
-		window_set_background_color(s_main_window, GColorBlack);
-		text_layer_set_text_color(s_time_layer, GColorWhite);
-		text_layer_set_text_color(s_date_layer, GColorWhite);
+		
   #endif
+}
+
+static void set_background_color(int bgcolor) {
+	#ifdef PBL_COLOR
+		GColor bg_color = GColorFromHEX(bgcolor);
+		window_set_background_color(s_main_window, bg_color);
+  	#else
+
+  	#endif
 }
 
 static void inverter() {
@@ -198,13 +204,27 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *conditions_t = dict_find(iter, KEY_CONDITIONS);
   Tuple *shake_for_weather_t = dict_find(iter, KEY_SHAKE_FOR_WEATHER);
   Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS);
+  Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR);
 
   if (text_color_t) {
     int text_color = text_color_t->value->int32;
+    APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR received!");
 
     persist_write_int(KEY_TEXT_COLOR, text_color);
     #ifdef PBL_COLOR
-    	set_background_and_text_color(text_color);
+    	set_text_color(text_color);
+    #else
+
+    #endif
+  }
+
+  if (background_color_t) {
+  	int bg_color = background_color_t->value->int32;
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR received!");
+
+  	persist_write_int(KEY_BACKGROUND_COLOR, bg_color);
+  	#ifdef PBL_COLOR
+    	set_background_color(bg_color);
     #else
 
     #endif
@@ -366,9 +386,17 @@ static void main_window_load(Window *window) {
 		if (persist_exists(KEY_TEXT_COLOR)) {
 	    	int text_color = persist_read_int(KEY_TEXT_COLOR);
 	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists!");
-	    	set_background_and_text_color(text_color);
+	    	set_text_color(text_color);
 	    } else {
-	    	set_background_and_text_color(0xFFFFFF); // white
+	    	set_text_color(0xFFFFFF); // white
+	    }
+
+	    if (persist_exists(KEY_BACKGROUND_COLOR)) {
+	    	int bg_color = persist_read_int(KEY_BACKGROUND_COLOR);
+	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR exists!");
+	    	set_background_color(bg_color);
+	    } else {
+	    	set_background_color(0x000000); // black
 	    }
 	#else
 

@@ -6,7 +6,8 @@
         "KEY_TEMPERATURE_IN_C": 3,
         "KEY_CONDITIONS": 4,
         "shakeWeather": 5,
-        "useCelsius": 6
+        "useCelsius": 6,
+        "backgroundColor": 7
     },
     "capabilities": [
         "configurable",
@@ -31,12 +32,6 @@
                 "file": "fonts/square.ttf",
                 "name": "FONT_SQUARE_22",
                 "type": "font"
-            },
-            {
-                "menuIcon": true,
-                "file": "square_icon.png",
-                "name": "IMAGE_ICON",
-                "type": "png"
             }
         ]
     },
