@@ -51,10 +51,14 @@ static void init_animations() {
 	GRect battstart = GRect(-140, 0, 144, 168);
 	GRect battfinish = GRect(0, 0, 144, 168);
 
+	GRect chargestart = GRect(0, 210, 144, 168);
+	GRect chargefinish = GRect(0, 110, 144, 168);
+
 	int animlen = 500;
 
 	animate_layer(text_layer_get_layer(s_time_layer), &timestart, &timefinish, animlen, 0);
 	animate_layer(text_layer_get_layer(s_date_layer), &datestart, &datefinish, animlen, 0);
+	animate_layer(text_layer_get_layer(s_charge_layer), &chargestart, &chargefinish, animlen, 0);
 	animate_layer(s_batt_layer, &battstart, &battfinish, animlen, 0);
 }
 
@@ -98,17 +102,21 @@ static void update_time() {
 	text_layer_set_text(s_date_layer, date_buffer);
 }
 
-static void battery_handler(BatteryChargeState state) {
-	APP_LOG(APP_LOG_LEVEL_INFO, "Battery change registered!");
-	layer_mark_dirty(s_batt_layer);
-	
+static void charge_handler() {
+	BatteryChargeState state = battery_state_service_peek();
 	bool charging = state.is_charging;
 	
-	if(charging == true) {
+	if (charging == true) {
 		layer_set_hidden(s_scharge_layer, false);
 	} else {
 		layer_set_hidden(s_scharge_layer, true);
 	}
+}
+
+static void battery_handler(BatteryChargeState state) {
+	APP_LOG(APP_LOG_LEVEL_INFO, "Battery change registered!");
+	layer_mark_dirty(s_batt_layer);
+	charge_handler();
 }
 
 static void batt_layer_draw(Layer *layer, GContext *ctx) {	
@@ -137,6 +145,8 @@ static void batt_layer_draw(Layer *layer, GContext *ctx) {
 
 	graphics_fill_rect(ctx, GRect(2, 92, 140-(((100-pct)/10)*14), 2), 0, GCornerNone); // Draw battery
 }
+
+
 
 static void update_layers() {
 	if (shake_for_weather == 0) {
@@ -181,6 +191,7 @@ static void inverter() {
 			text_layer_set_text_color(s_conditions_layer, GColorBlack);
 			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
 			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
+			text_layer_set_text_color(s_charge_layer, GColorBlack);
 	    } else {
 	    	window_set_background_color(s_main_window, GColorBlack);
 			text_layer_set_text_color(s_time_layer, GColorWhite);
@@ -189,6 +200,7 @@ static void inverter() {
 			text_layer_set_text_color(s_conditions_layer, GColorWhite);
 			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
 			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
+			text_layer_set_text_color(s_charge_layer, GColorWhite);
 	    }
 }
 
@@ -328,7 +340,7 @@ static void main_window_load(Window *window) {
 	layer_set_update_proc(s_batt_layer, batt_layer_draw);
 	
 	// Charging status
-	s_charge_layer = text_layer_create(GRect(0, 110, 144, 168));
+	s_charge_layer = text_layer_create(GRect(0, 210, 144, 168));
 	text_layer_set_background_color(s_charge_layer, GColorClear);
 	text_layer_set_font(s_charge_layer, s_weather_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
@@ -422,6 +434,7 @@ static void main_window_load(Window *window) {
   	  shake_for_weather = persist_read_int(KEY_SHAKE_FOR_WEATHER);
   	}
 
+  	charge_handler();
   	update_layers();
 	update_time();
 }
@@ -473,26 +486,17 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 }
 
 static void init() {
-  s_main_window = window_create();
+	s_main_window = window_create();
 
-  window_set_window_handlers(s_main_window, (WindowHandlers) {
-    .load = main_window_load,
-    .unload = main_window_unload
-  });
+	window_set_window_handlers(s_main_window, (WindowHandlers) {
+		.load = main_window_load,
+		.unload = main_window_unload
+	});
 
-  window_stack_push(s_main_window, true);
-  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  battery_state_service_subscribe(battery_handler);
-  accel_tap_service_subscribe(tap_handler);
-	
-	BatteryChargeState state = battery_state_service_peek();
-	bool charging = state.is_charging;
-	
-	if(charging == true) {
-		layer_set_hidden(s_scharge_layer, false);
-	} else {
-		layer_set_hidden(s_scharge_layer, true);
-	}
+	window_stack_push(s_main_window, true);
+	tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+	battery_state_service_subscribe(battery_handler);
+	accel_tap_service_subscribe(tap_handler);
 
 	app_message_register_inbox_received(inbox_received_handler);
   	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
