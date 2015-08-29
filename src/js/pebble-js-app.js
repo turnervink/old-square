@@ -9,7 +9,7 @@ var xhrRequest = function (url, type, callback) {
 
 function locationSuccess(pos) {
   // Construct URL
-  var url = 'https://api.forecast.io/forecast/APIKEY/' + 
+  var url = 'https://api.forecast.io/forecast/6a987aa0f3fdb98e6582163f2c9c324f/' + 
   pos.coords.latitude + ',' + pos.coords.longitude;
   
   console.log("Lat is " + pos.coords.latitude);
@@ -20,13 +20,13 @@ function locationSuccess(pos) {
     function(responseText) {
       // responseText contains a JSON object with weather info
       var json = JSON.parse(responseText);
-    console.log(JSON.parse(responseText));
+      console.log(JSON.parse(responseText));
 
       var temperature = Math.round(json.currently.temperature);
       console.log("Temperature is " + temperature);
       
-    var temperaturec = Math.round((json.currently.temperature - 32) * 5/9);
-    console.log("Temperature in Celsius is " + temperaturec);
+      var temperaturec = Math.round((json.currently.temperature - 32) * 5/9);
+      console.log("Temperature in Celsius is " + temperaturec);
 
       // Conditions
       var conditions = json.currently.summary;      
@@ -35,8 +35,8 @@ function locationSuccess(pos) {
       // Assemble dictionary using our keys
       var dictionary = {
         "KEY_TEMPERATURE": temperature,
-    "KEY_TEMPERATURE_IN_C": temperaturec,
-    "KEY_CONDITIONS": conditions,
+        "KEY_TEMPERATURE_IN_C": temperaturec,
+        "KEY_CONDITIONS": conditions,
       };
 
       // Send to Pebble
@@ -79,7 +79,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://212d8220.ngrok.com/';
+  var url = 'http://turnervink.github.io/square-config/';
 
   console.log('Showing configuration page: ' + url);
 
