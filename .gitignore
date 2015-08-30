@@ -1,5 +1,5 @@
 build
 .lock-waf*
-.idea
-/screenshots/3.0
+screenshots/3.0
 config
+.idea
