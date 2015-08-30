@@ -3,7 +3,7 @@ by Turner Vink<br>
 www.turnervink.com
 
 ![basalt main](screenshots/colours.gif "Basalt")
-![aplite main](screenshots/aplite.png "Aplite")
+![aplite main](screenshots/aplite.gif "Aplite")
 ![weather](screenshots/tap.gif "Weather")
 
 
