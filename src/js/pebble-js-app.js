@@ -9,8 +9,7 @@ var xhrRequest = function (url, type, callback) {
 
 function locationSuccess(pos) {
   // Construct URL
-  var url = 'https://api.forecast.io/forecast/APIKEY/' + 
-  pos.coords.latitude + ',' + pos.coords.longitude;
+  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude;
   
   console.log("Lat is " + pos.coords.latitude);
   console.log("Lon is " + pos.coords.longitude);
@@ -18,18 +17,19 @@ function locationSuccess(pos) {
   // Send request to forecast.io
   xhrRequest(url, 'GET', 
     function(responseText) {
+      console.log("Parsing JSON");
       // responseText contains a JSON object with weather info
       var json = JSON.parse(responseText);
       console.log(JSON.parse(responseText));
 
-      var temperature = Math.round(json.currently.temperature);
-      console.log("Temperature is " + temperature);
+      var temperature = Math.round(((json.main.temp - 273.15) * 1.8) + 32);
+      console.log("Temperature in Fahrenheit is " + temperature);
       
-      var temperaturec = Math.round((json.currently.temperature - 32) * 5/9);
+      var temperaturec = Math.round(json.main.temp - 273.15);
       console.log("Temperature in Celsius is " + temperaturec);
 
       // Conditions
-      var conditions = json.currently.summary;      
+      var conditions = json.weather[0].main;      
       console.log("Conditions are " + conditions);
       
       // Assemble dictionary using our keys
@@ -79,7 +79,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://turnervink.github.io/square-config/';
+  var url = 'http://7c9c9b8a.ngrok.com';
 
   console.log('Showing configuration page: ' + url);
 
@@ -96,6 +96,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
       textColor: parseInt(configData.textColor, 16),
       backgroundColor: parseInt(configData.backgroundColor, 16),
       invertColors: configData.invertColors ? 1 : 0,
+      showWeather: configData.showWeather ? 1 : 0,
       shakeWeather: configData.shakeWeather ? 1 : 0,
       useCelsius: configData.useCelsius ? 1 : 0
     }, function() {

@@ -7,7 +7,8 @@
         "KEY_CONDITIONS": 4,
         "shakeWeather": 5,
         "useCelsius": 6,
-        "backgroundColor": 7
+        "backgroundColor": 7,
+        "showWeather": 8
     },
     "capabilities": [
         "configurable",
@@ -42,7 +43,7 @@
         "basalt"
     ],
     "uuid": "cb332373-4ee5-4c5c-8912-4f62af2d756c",
-    "versionLabel": "3.3",
+    "versionLabel": "3.4",
     "watchapp": {
         "watchface": true
     }

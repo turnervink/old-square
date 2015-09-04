@@ -8,6 +8,7 @@
 #define KEY_SHAKE_FOR_WEATHER 5
 #define KEY_USE_CELSIUS 6
 #define KEY_BACKGROUND_COLOR 7
+#define KEY_SHOW_WEATHER 8
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
@@ -16,6 +17,7 @@ static Layer *s_batt_layer, *s_scharge_layer, *s_weather_layer, *s_weather_layer
 static bool invert_colors = 0;
 static bool use_celsius = 0;
 static bool shake_for_weather = 1;
+static bool show_weather = 1;
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -149,13 +151,18 @@ static void batt_layer_draw(Layer *layer, GContext *ctx) {
 
 
 static void update_layers() {
-	if (shake_for_weather == 0) {
-	  	layer_set_hidden(s_weather_layer, true);
-	  	layer_set_hidden(s_weather_layer_unanimated, false);
-	  } else {
-	  	layer_set_hidden(s_weather_layer, false);
-	  	layer_set_hidden(s_weather_layer_unanimated, true);
-	  }
+	if (show_weather == 0) {
+		layer_set_hidden(s_weather_layer, true);
+		layer_set_hidden(s_weather_layer_unanimated, true);
+	} else {
+		if (shake_for_weather == 0) {
+			layer_set_hidden(s_weather_layer, true);
+			layer_set_hidden(s_weather_layer_unanimated, false);
+		} else {
+			layer_set_hidden(s_weather_layer, false);
+			layer_set_hidden(s_weather_layer_unanimated, true);
+		}
+	}
 }
 
 static void set_text_color(int color) {
@@ -215,6 +222,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *temperature_in_c_t = dict_find(iter, KEY_TEMPERATURE_IN_C);
   Tuple *conditions_t = dict_find(iter, KEY_CONDITIONS);
   Tuple *shake_for_weather_t = dict_find(iter, KEY_SHAKE_FOR_WEATHER);
+  Tuple *show_weather_t = dict_find(iter, KEY_SHOW_WEATHER);
   Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS);
   Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR);
 
@@ -293,6 +301,14 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	shake_for_weather = shake_for_weather_t->value->int8;
 
   	persist_write_int(KEY_SHAKE_FOR_WEATHER, shake_for_weather);
+  }
+
+  if (show_weather_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
+
+  	show_weather = show_weather_t->value->int8;
+
+  	persist_write_int(KEY_SHOW_WEATHER, show_weather);
   }
 
   if (temperature_t) {
@@ -434,8 +450,18 @@ static void main_window_load(Window *window) {
   	  shake_for_weather = persist_read_int(KEY_SHAKE_FOR_WEATHER);
   	}
 
+  	if (persist_exists(KEY_SHOW_WEATHER)) {
+  		show_weather = persist_read_int(KEY_SHOW_WEATHER);
+
+  		if (show_weather == 1) {
+  			update_layers();
+  		} else {
+  			layer_set_hidden(s_weather_layer, true);
+  			layer_set_hidden(s_weather_layer_unanimated, true);
+  		}
+  	}
+
   	charge_handler();
-  	update_layers();
 	update_time();
 }
 
