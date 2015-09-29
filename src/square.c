@@ -9,15 +9,17 @@
 #define KEY_USE_CELSIUS 6
 #define KEY_BACKGROUND_COLOR 7
 #define KEY_SHOW_WEATHER 8
+#define KEY_VIBE_ON_BLUETOOTH 9
 	
 static Window *s_main_window;
-static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
+static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated, *s_bluetooth_layer;
 static GFont s_time_font, s_date_font, s_weather_font;
 static Layer *s_batt_layer, *s_scharge_layer, *s_weather_layer, *s_weather_layer_unanimated;
 static bool invert_colors = 0;
 static bool use_celsius = 0;
 static bool shake_for_weather = 1;
 static bool show_weather = 1;
+static bool vibe_on_bluetooth = 1;
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -115,6 +117,16 @@ static void charge_handler() {
 	}
 }
 
+static void bluetooth_handler(bool connected) {
+	if (!connected) {
+		vibes_long_pulse();
+		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
+	} else {
+		vibes_double_pulse();
+		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
+	}
+}
+
 static void battery_handler(BatteryChargeState state) {
 	APP_LOG(APP_LOG_LEVEL_INFO, "Battery change registered!");
 	layer_mark_dirty(s_batt_layer);
@@ -175,6 +187,7 @@ static void set_text_color(int color) {
 		text_layer_set_text_color(s_temp_layer_unanimated, text_color);
 		text_layer_set_text_color(s_conditions_layer_unanimated, text_color);
 		text_layer_set_text_color(s_charge_layer, text_color);
+		text_layer_set_text_color(s_bluetooth_layer, text_color);
   #else
 		
   #endif
@@ -199,6 +212,7 @@ static void inverter() {
 			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
 			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
 			text_layer_set_text_color(s_charge_layer, GColorBlack);
+			text_layer_set_text_color(s_bluetooth_layer, GColorBlack);
 	    } else {
 	    	window_set_background_color(s_main_window, GColorBlack);
 			text_layer_set_text_color(s_time_layer, GColorWhite);
@@ -208,6 +222,7 @@ static void inverter() {
 			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
 			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
 			text_layer_set_text_color(s_charge_layer, GColorWhite);
+			text_layer_set_text_color(s_bluetooth_layer, GColorWhite);
 	    }
 }
 
@@ -364,6 +379,13 @@ static void main_window_load(Window *window) {
 	
 	s_scharge_layer = layer_create(GRect(0, 0, 144, 168));
 	layer_set_hidden(s_scharge_layer, true);
+
+	// Bluetooth status
+	s_bluetooth_layer = text_layer_create(GRect(0, 39, 144, 168));
+	text_layer_set_background_color(s_bluetooth_layer, GColorClear);
+	text_layer_set_font(s_bluetooth_layer, s_weather_font);
+	text_layer_set_text_alignment(s_bluetooth_layer, GTextAlignmentCenter);
+	text_layer_set_text(s_bluetooth_layer, "BT");
 	
 	// Time layer
 	s_time_layer = text_layer_create(GRect(0, -60, 144, 168));
@@ -405,6 +427,7 @@ static void main_window_load(Window *window) {
 
 	layer_add_child(window_get_root_layer(window), s_weather_layer);
 	layer_add_child(window_get_root_layer(window), s_weather_layer_unanimated);
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_bluetooth_layer));
 	layer_add_child(s_weather_layer, text_layer_get_layer(s_temp_layer));
 	layer_add_child(s_weather_layer, text_layer_get_layer(s_conditions_layer));
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_temp_layer_unanimated));
@@ -459,6 +482,14 @@ static void main_window_load(Window *window) {
   			layer_set_hidden(s_weather_layer, true);
   			layer_set_hidden(s_weather_layer_unanimated, true);
   		}
+  	}
+
+  	bool connected = bluetooth_connection_service_peek();
+
+  	if (!connected) {
+  		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
+  	} else {
+  		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
   	}
 
   	charge_handler();
@@ -523,11 +554,10 @@ static void init() {
 	tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 	battery_state_service_subscribe(battery_handler);
 	accel_tap_service_subscribe(tap_handler);
+	bluetooth_connection_service_subscribe(bluetooth_handler);
 
 	app_message_register_inbox_received(inbox_received_handler);
   	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-
-  	init_animations();
 }
 
 static void deinit() {
