@@ -8,7 +8,10 @@
         "shakeWeather": 5,
         "useCelsius": 6,
         "backgroundColor": 7,
-        "showWeather": 8
+        "showWeather": 8,
+        "vibeDisconnect": 9,
+        "vibeConnect": 10,
+        "showBluetooth": 11
     },
     "capabilities": [
         "configurable",

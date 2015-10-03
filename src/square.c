@@ -9,17 +9,20 @@
 #define KEY_USE_CELSIUS 6
 #define KEY_BACKGROUND_COLOR 7
 #define KEY_SHOW_WEATHER 8
-#define KEY_VIBE_ON_BLUETOOTH 9
+#define KEY_VIBE_ON_DISCONNECT 9
+#define KEY_VIBE_ON_CONNECT 10
+#define KEY_SHOW_BT 11
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated, *s_bluetooth_layer;
 static GFont s_time_font, s_date_font, s_weather_font;
-static Layer *s_batt_layer, *s_scharge_layer, *s_weather_layer, *s_weather_layer_unanimated;
+static Layer *s_batt_layer, *s_scharge_layer, *s_weather_layer, *s_weather_layer_unanimated, *s_sbluetooth_layer;
 static bool invert_colors = 0;
 static bool use_celsius = 0;
 static bool shake_for_weather = 1;
 static bool show_weather = 1;
-static bool vibe_on_bluetooth = 1;
+static bool vibe_on_disconnect = 1;
+static bool vibe_on_connect = 1;
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -119,11 +122,15 @@ static void charge_handler() {
 
 static void bluetooth_handler(bool connected) {
 	if (!connected) {
-		vibes_long_pulse();
-		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
+		if (vibe_on_disconnect == 1) {
+			vibes_long_pulse();
+		}
+		layer_set_hidden(s_sbluetooth_layer, false);
 	} else {
-		vibes_double_pulse();
-		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
+		if (vibe_on_connect == 1) {
+			vibes_double_pulse();
+		}
+		layer_set_hidden(s_sbluetooth_layer, true);
 	}
 }
 
@@ -178,6 +185,7 @@ static void update_layers() {
 }
 
 static void set_text_color(int color) {
+	APP_LOG(APP_LOG_LEVEL_INFO, "Setting text colour");
   #ifdef PBL_COLOR
 		GColor text_color = GColorFromHEX(color);
 		text_layer_set_text_color(s_time_layer, text_color);
@@ -240,6 +248,8 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *show_weather_t = dict_find(iter, KEY_SHOW_WEATHER);
   Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS);
   Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR);
+  Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT);
+  Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT);
 
   if (text_color_t) {
     int text_color = text_color_t->value->int32;
@@ -276,30 +286,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     #else
     	inverter();
     #endif
-
-  /*if (invert_colors == 1) {
-    #ifdef PBL_COLOR
-    	// Do not try to invert
-    #else
-	    if (invert_colors == 1) {
-	    	window_set_background_color(s_main_window, GColorWhite);
-			text_layer_set_text_color(s_time_layer, GColorBlack);
-			text_layer_set_text_color(s_date_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
-	    } else {
-	    	window_set_background_color(s_main_window, GColorBlack);
-			text_layer_set_text_color(s_time_layer, GColorWhite);
-			text_layer_set_text_color(s_date_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
-	    }
-	#endif
-    }*/
   }
 
   if (use_celsius_t) {
@@ -346,6 +332,16 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	text_layer_set_text(s_conditions_layer_unanimated, conditions_buffer);
   }
 
+  if (vibe_on_connect_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_CONNECT received!");
+  	vibe_on_connect = vibe_on_connect_t->value->int8;
+  }
+
+  if (vibe_on_disconnect_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_DISCONNECT received!");
+  	vibe_on_disconnect = vibe_on_disconnect_t->value->int8;
+  }
+
   if (use_celsius == 1) {
   	text_layer_set_text(s_temp_layer, temp_c_buffer);
   	text_layer_set_text(s_temp_layer_unanimated, temp_c_buffer);
@@ -353,6 +349,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	text_layer_set_text(s_temp_layer, temp_buffer);
   	text_layer_set_text(s_temp_layer_unanimated, temp_buffer);
   }
+
 
   update_layers();
 }
@@ -379,6 +376,8 @@ static void main_window_load(Window *window) {
 	
 	s_scharge_layer = layer_create(GRect(0, 0, 144, 168));
 	layer_set_hidden(s_scharge_layer, true);
+
+	s_sbluetooth_layer = layer_create(GRect(0, 0, 144, 168));
 
 	// Bluetooth status
 	s_bluetooth_layer = text_layer_create(GRect(0, 39, 144, 168));
@@ -423,11 +422,12 @@ static void main_window_load(Window *window) {
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
 	layer_add_child(window_get_root_layer(window), s_scharge_layer);
+	layer_add_child(window_get_root_layer(window), s_sbluetooth_layer);
 	layer_add_child(s_scharge_layer, text_layer_get_layer(s_charge_layer));
+	layer_add_child(s_sbluetooth_layer, text_layer_get_layer(s_bluetooth_layer));
 
 	layer_add_child(window_get_root_layer(window), s_weather_layer);
 	layer_add_child(window_get_root_layer(window), s_weather_layer_unanimated);
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_bluetooth_layer));
 	layer_add_child(s_weather_layer, text_layer_get_layer(s_temp_layer));
 	layer_add_child(s_weather_layer, text_layer_get_layer(s_conditions_layer));
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_temp_layer_unanimated));
@@ -485,12 +485,12 @@ static void main_window_load(Window *window) {
   	}
 
   	bool connected = bluetooth_connection_service_peek();
-
   	if (!connected) {
-  		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
-  	} else {
-  		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
-  	}
+		layer_set_hidden(s_sbluetooth_layer, false);
+	} else {
+		layer_set_hidden(s_sbluetooth_layer, true);
+	}
+  	
 
   	charge_handler();
 	update_time();
@@ -504,6 +504,7 @@ static void main_window_unload(Window *window) {
 	text_layer_destroy(s_conditions_layer_unanimated);
 	text_layer_destroy(s_temp_layer);
 	text_layer_destroy(s_temp_layer_unanimated);
+	text_layer_destroy(s_bluetooth_layer);
 	layer_destroy(s_batt_layer);
 	layer_destroy(s_scharge_layer);
 	layer_destroy(s_weather_layer);
@@ -518,18 +519,21 @@ static void main_window_unload(Window *window) {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	update_time();
 
-	// Update weather every 30 minutes
-	if(tick_time->tm_min % 30 == 0) {
-		// Begin dictionary
-		DictionaryIterator *iter;
-		app_message_outbox_begin(&iter);
+	if (show_weather == 1) {
+		// Update weather every 30 minutes
+		if(tick_time->tm_min % 30 == 0) {
+			// Begin dictionary
+			DictionaryIterator *iter;
+			app_message_outbox_begin(&iter);
 
-		// Add a key-value pair
-		dict_write_uint8(iter, 0, 0);
+			// Add a key-value pair
+			dict_write_uint8(iter, 0, 0);
 
-		// Send the message!
-		app_message_outbox_send();
+			// Send the message!
+			app_message_outbox_send();
+		}
 	}
+	
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
