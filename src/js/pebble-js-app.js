@@ -9,8 +9,8 @@ var xhrRequest = function (url, type, callback) {
 
 function locationSuccess(pos) {
   // Construct URL
-  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&APPID=2874bea34ea1f91820fa07af69939eea';
-
+  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude;
+  
   console.log("Lat is " + pos.coords.latitude);
   console.log("Lon is " + pos.coords.longitude);
 
@@ -79,7 +79,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://7a996767.ngrok.com';
+  var url = 'http://turnervink.github.io/square-config/';
 
   console.log('Showing configuration page: ' + url);
 
@@ -98,9 +98,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
       invertColors: configData.invertColors ? 1 : 0,
       showWeather: configData.showWeather ? 1 : 0,
       shakeWeather: configData.shakeWeather ? 1 : 0,
-      useCelsius: configData.useCelsius ? 1 : 0,
-      vibeConnect: configData.vibeConnect ? 1 : 0,
-      vibeDisconnect: configData.vibeDisconnect ? 1 : 0
+      useCelsius: configData.useCelsius ? 1 : 0
     }, function() {
       console.log('Send successful!');
     }, function() {

@@ -9,9 +9,6 @@
 #define KEY_USE_CELSIUS 6
 #define KEY_BACKGROUND_COLOR 7
 #define KEY_SHOW_WEATHER 8
-#define KEY_VIBE_ON_DISCONNECT 9
-#define KEY_VIBE_ON_CONNECT 10
-#define KEY_SHOW_BT 11
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
@@ -21,8 +18,6 @@ static bool invert_colors = 0;
 static bool use_celsius = 0;
 static bool shake_for_weather = 1;
 static bool show_weather = 1;
-static bool vibe_on_disconnect = 1;
-static bool vibe_on_connect = 1;
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -114,9 +109,9 @@ static void charge_handler() {
 	bool charging = state.is_charging;
 	
 	if (charging == true) {
-		layer_set_hidden(text_layer_get_layer(s_charge_layer), false);
+		layer_set_hidden(s_scharge_layer, false);
 	} else {
-		layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
+		layer_set_hidden(s_scharge_layer, true);
 	}
 }
 
@@ -171,7 +166,6 @@ static void update_layers() {
 }
 
 static void set_text_color(int color) {
-	APP_LOG(APP_LOG_LEVEL_INFO, "Setting text colour");
   #ifdef PBL_COLOR
 		GColor text_color = GColorFromHEX(color);
 		text_layer_set_text_color(s_time_layer, text_color);
@@ -231,8 +225,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *show_weather_t = dict_find(iter, KEY_SHOW_WEATHER);
   Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS);
   Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR);
-  Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT);
-  Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT);
 
   if (text_color_t) {
     int text_color = text_color_t->value->int32;
@@ -269,6 +261,30 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     #else
     	inverter();
     #endif
+
+  /*if (invert_colors == 1) {
+    #ifdef PBL_COLOR
+    	// Do not try to invert
+    #else
+	    if (invert_colors == 1) {
+	    	window_set_background_color(s_main_window, GColorWhite);
+			text_layer_set_text_color(s_time_layer, GColorBlack);
+			text_layer_set_text_color(s_date_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer, GColorBlack);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
+	    } else {
+	    	window_set_background_color(s_main_window, GColorBlack);
+			text_layer_set_text_color(s_time_layer, GColorWhite);
+			text_layer_set_text_color(s_date_layer, GColorWhite);
+			text_layer_set_text_color(s_temp_layer, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer, GColorWhite);
+			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
+			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
+	    }
+	#endif
+    }*/
   }
 
   if (use_celsius_t) {
@@ -315,16 +331,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	text_layer_set_text(s_conditions_layer_unanimated, conditions_buffer);
   }
 
-  if (vibe_on_connect_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_CONNECT received!");
-  	vibe_on_connect = vibe_on_connect_t->value->int8;
-  }
-
-  if (vibe_on_disconnect_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_DISCONNECT received!");
-  	vibe_on_disconnect = vibe_on_disconnect_t->value->int8;
-  }
-
   if (use_celsius == 1) {
   	text_layer_set_text(s_temp_layer, temp_c_buffer);
   	text_layer_set_text(s_temp_layer_unanimated, temp_c_buffer);
@@ -332,7 +338,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	text_layer_set_text(s_temp_layer, temp_buffer);
   	text_layer_set_text(s_temp_layer_unanimated, temp_buffer);
   }
-
 
   update_layers();
 }
@@ -356,7 +361,9 @@ static void main_window_load(Window *window) {
 	text_layer_set_font(s_charge_layer, s_weather_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
 	text_layer_set_text(s_charge_layer, "CHRG");
-	layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
+	
+	s_scharge_layer = layer_create(GRect(0, 0, 144, 168));
+	layer_set_hidden(s_scharge_layer, true);
 	
 	// Time layer
 	s_time_layer = text_layer_create(GRect(0, -60, 144, 168));
@@ -390,23 +397,18 @@ static void main_window_load(Window *window) {
 	text_layer_set_background_color(s_conditions_layer_unanimated, GColorClear);
 	text_layer_set_text_alignment(s_conditions_layer_unanimated, GTextAlignmentCenter);
 	
-	// Main elements
-	layer_add_child(window_get_root_layer(s_main_window), s_batt_layer);
-	layer_add_child(window_get_root_layer(s_main_window), text_layer_get_layer(s_time_layer));
-	layer_add_child(window_get_root_layer(s_main_window), text_layer_get_layer(s_date_layer));
+	layer_add_child(window_get_root_layer(window), s_batt_layer);
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
+	layer_add_child(window_get_root_layer(window), s_scharge_layer);
+	layer_add_child(s_scharge_layer, text_layer_get_layer(s_charge_layer));
 
-	
-	// Weather elements
 	layer_add_child(window_get_root_layer(window), s_weather_layer);
 	layer_add_child(window_get_root_layer(window), s_weather_layer_unanimated);
 	layer_add_child(s_weather_layer, text_layer_get_layer(s_temp_layer));
 	layer_add_child(s_weather_layer, text_layer_get_layer(s_conditions_layer));
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_temp_layer_unanimated));
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_conditions_layer_unanimated));
-
-	// Extra elements
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_charge_layer));
-	
 	
 	#ifdef PBL_COLOR
 		if (persist_exists(KEY_TEXT_COLOR)) {
@@ -485,21 +487,18 @@ static void main_window_unload(Window *window) {
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	update_time();
 
-	if (show_weather == 1) {
-		// Update weather every 30 minutes
-		if(tick_time->tm_min % 30 == 0) {
-			// Begin dictionary
-			DictionaryIterator *iter;
-			app_message_outbox_begin(&iter);
+	// Update weather every 30 minutes
+	if(tick_time->tm_min % 30 == 0) {
+		// Begin dictionary
+		DictionaryIterator *iter;
+		app_message_outbox_begin(&iter);
 
-			// Add a key-value pair
-			dict_write_uint8(iter, 0, 0);
+		// Add a key-value pair
+		dict_write_uint8(iter, 0, 0);
 
-			// Send the message!
-			app_message_outbox_send();
-		}
+		// Send the message!
+		app_message_outbox_send();
 	}
-	
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
@@ -527,13 +526,14 @@ static void init() {
 
 	app_message_register_inbox_received(inbox_received_handler);
   	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+
+  	init_animations();
 }
 
 static void deinit() {
-	window_destroy(s_main_window);
-	tick_timer_service_unsubscribe();
-	battery_state_service_unsubscribe();
-	accel_tap_service_unsubscribe();
+  window_destroy(s_main_window);
+  tick_timer_service_unsubscribe();
+ 	battery_state_service_unsubscribe();
 }
 
 int main(void) {
