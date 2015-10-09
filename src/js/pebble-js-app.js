@@ -9,8 +9,9 @@ var xhrRequest = function (url, type, callback) {
 
 function locationSuccess(pos) {
   // Construct URL
-  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude;
-  
+  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&APPID=2874bea34ea1f91820fa07af69939eea';
+  //var url = 'http://api.openweathermap.org/data/2.5/weather?lat=2.5&lon=2.5&APPID=2874bea34ea1f91820fa07af69939eea';
+
   console.log("Lat is " + pos.coords.latitude);
   console.log("Lon is " + pos.coords.longitude);
 
