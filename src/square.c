@@ -418,7 +418,7 @@ static void main_window_load(Window *window) {
 
 	// Extra elements
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_charge_layer));
-	//layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_bluetooth_layer));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_bluetooth_layer));
 
 	// Weather elements
 	layer_add_child(window_get_root_layer(window), s_weather_layer);
