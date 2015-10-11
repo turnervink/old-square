@@ -502,12 +502,14 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
-	if (shake_for_weather == 0) {
-		APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Not animating.");
-		// Do not animate
-	} else {
-		APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Animating");
-		animate_layers();
+	if (shake_for_weather == 1) {
+		if (shake_for_weather == 0) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Not animating.");
+			// Do not animate
+		} else {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Animating");
+			animate_layers();
+		}
 	}
 }
 
