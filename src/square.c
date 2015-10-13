@@ -48,7 +48,7 @@ static void init_animations() {
 	GRect timefinish = GRect(0, 40, 144, 168);
 
 	GRect datestart = GRect(0, 190, 144, 168);
-	GRect datefinish = GRect(0, 90, 144, 168);
+	GRect datefinish = GRect(0, 88, 144, 168);
 
 	GRect battstart = GRect(-140, 0, 144, 168);
 	GRect battfinish = GRect(0, 0, 144, 168);
@@ -345,7 +345,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 static void main_window_load(Window *window) {
 	// Create fonts
 	s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_50));
-	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_22));
+	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_26));
 	s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_14));
 
 	s_weather_layer = layer_create(GRect(0, 0, 144, 168));
