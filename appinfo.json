@@ -11,7 +11,8 @@
         "showWeather": 8,
         "vibeDisconnect": 9,
         "vibeConnect": 10,
-        "showBluetooth": 11
+        "showBluetooth": 11,
+        "reflectBatt": 12
     },
     "capabilities": [
         "configurable",
@@ -46,7 +47,7 @@
         "basalt"
     ],
     "uuid": "cb332373-4ee5-4c5c-8912-4f62af2d756c",
-    "versionLabel": "3.8",
+    "versionLabel": "3.9",
     "watchapp": {
         "watchface": true
     }

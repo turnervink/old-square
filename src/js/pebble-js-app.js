@@ -100,7 +100,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
       shakeWeather: configData.shakeWeather ? 1 : 0,
       useCelsius: configData.useCelsius ? 1 : 0,
       vibeDisconnect: configData.vibeDisconnect ? 1 : 0,
-      vibeConnect: configData.vibeConnect ? 1 : 0
+      vibeConnect: configData.vibeConnect ? 1 : 0,
+      reflectBatt: configData.reflectBatt ? 1 : 0
     }, function() {
       console.log('Send successful!');
     }, function() {

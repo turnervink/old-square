@@ -11,17 +11,19 @@
 #define KEY_SHOW_WEATHER 8
 #define KEY_VIBE_ON_DISCONNECT 9
 #define KEY_VIBE_ON_CONNECT 10
+#define KEY_REFLECT_BATT 12
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
 static GFont s_time_font, s_date_font, s_weather_font;
-static Layer *s_batt_layer, *s_weather_layer, *s_weather_layer_unanimated;
+static Layer *s_batt_layer, *s_static_layer, *s_weather_layer, *s_weather_layer_unanimated;
 static bool invert_colors = 0;
 static bool use_celsius = 0;
 static bool shake_for_weather = 1;
 static bool show_weather = 1;
 static bool vibe_on_disconnect = 1;
 static bool vibe_on_connect = 1;
+static bool reflect_batt = 1;
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -163,7 +165,34 @@ static void batt_layer_draw(Layer *layer, GContext *ctx) {
 		}
 	#endif
 
-	graphics_fill_rect(ctx, GRect(2, 92, 140-(((100-pct)/10)*14), 2), 0, GCornerNone); // Draw battery
+	//graphics_fill_rect(ctx, GRect(2, 92, 140-(((100-pct)/10)*14), 2), 0, GCornerNone); // Draw battery
+
+	graphics_fill_rect(ctx, GRect(72, 92, (140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
+	graphics_fill_rect(ctx, GRect(72, 92, -(140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
+}
+
+static void static_layer_draw(Layer *layer, GContext *ctx) {
+	#ifdef PBL_COLOR // If on basalt
+		if (persist_exists(KEY_TEXT_COLOR)) { // Check for existing colour
+			int text_color = persist_read_int(KEY_TEXT_COLOR);
+    		GColor fill_color = GColorFromHEX(text_color);
+			graphics_context_set_fill_color(ctx, fill_color); // Make the remaining battery that colour
+		} else {
+			graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
+		}
+	#else // If on aplite
+		if (persist_exists(KEY_INVERT_COLORS)) { // Check for invert setting
+			if (invert_colors == 1) {
+				graphics_context_set_fill_color(ctx, GColorBlack); // If inverted, make the remaining battery black
+			} else {
+				graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
+			}
+		} else {
+			graphics_context_set_fill_color(ctx, GColorWhite); // If no invert setting, default to white
+		}
+	#endif
+
+	graphics_fill_rect(ctx, GRect(2, 92, 140, 2), 0, GCornerNone); // Draw static bar
 }
 
 static void update_layers() {
@@ -244,6 +273,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR);
   Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT);
   Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT);
+  Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT);
 
   if (text_color_t) {
     int text_color = text_color_t->value->int32;
@@ -368,6 +398,23 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	text_layer_set_text(s_temp_layer_unanimated, temp_buffer);
   }
 
+  if (reflect_batt_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT received!");
+
+  	reflect_batt = reflect_batt_t->value->int8;
+
+  	persist_write_int(KEY_REFLECT_BATT, reflect_batt);
+  }
+
+  if (reflect_batt == 1) {
+	layer_set_hidden(s_static_layer, true);
+	layer_set_hidden(s_batt_layer, false);
+  } else {
+	layer_set_hidden(s_static_layer, false);
+	layer_set_hidden(s_batt_layer, true);
+  }
+
+
   update_layers();
 }
 
@@ -385,6 +432,10 @@ static void main_window_load(Window *window) {
 	s_batt_layer = layer_create(GRect(0, 0, 144, 168));
 	layer_set_update_proc(s_batt_layer, batt_layer_draw);
 
+	// Static bar
+	s_static_layer = layer_create(GRect(0, 0, 144, 168));
+	layer_set_update_proc(s_static_layer, static_layer_draw);
+
 	// Time layer
 	s_time_layer = text_layer_create(GRect(0, 40, 144, 168));
 	text_layer_set_background_color(s_time_layer, GColorClear);
@@ -399,7 +450,7 @@ static void main_window_load(Window *window) {
 
 	
 	// Charging status
-	s_charge_layer = text_layer_create(GRect(0, 110, 144, 168));
+	s_charge_layer = text_layer_create(GRect(0, 112, 144, 168));
 	text_layer_set_background_color(s_charge_layer, GColorClear);
 	text_layer_set_font(s_charge_layer, s_weather_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
@@ -443,6 +494,7 @@ static void main_window_load(Window *window) {
 
 	// Main elements
 	layer_add_child(window_get_root_layer(window), s_batt_layer);
+	layer_add_child(window_get_root_layer(window), s_static_layer);
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
 
@@ -494,6 +546,21 @@ static void main_window_load(Window *window) {
 
   	if (persist_exists(KEY_SHAKE_FOR_WEATHER)) {
   	  shake_for_weather = persist_read_int(KEY_SHAKE_FOR_WEATHER);
+  	}
+
+  	if (persist_exists(KEY_REFLECT_BATT)) {
+  	  reflect_batt = persist_read_int(KEY_REFLECT_BATT);
+
+  	  	if (reflect_batt == 1) {
+  			layer_set_hidden(s_static_layer, true);
+  			layer_set_hidden(s_batt_layer, false);
+  		} else {
+  			layer_set_hidden(s_static_layer, false);
+  			layer_set_hidden(s_batt_layer, true);
+  		}
+  	} else {
+  		layer_set_hidden(s_static_layer, true);
+  		layer_set_hidden(s_batt_layer, false);
   	}
 
   	if (persist_exists(KEY_SHOW_WEATHER)) {
