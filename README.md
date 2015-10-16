@@ -8,7 +8,10 @@ www.turnervink.com
 
 
 * Pick any text or background colour on Basalt
+* Invert colours on Aplite
 * Current temperature and conditions can be shown when you flick your wrist,  all the time, or not at all
+* Middle bar can be static or reflect battery
+* Bluetooth connection indicator with optional vibrations on dis/reconnected
 
 Download on the Pebble app store:
 https://apps.getpebble.com/applications/552597c506e80c0a4b00007f
