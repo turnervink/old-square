@@ -441,12 +441,14 @@ static void main_window_load(Window *window) {
 	text_layer_set_background_color(s_time_layer, GColorClear);
 	text_layer_set_font(s_time_layer, s_time_font);
 	text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
+	//text_layer_set_text(s_time_layer, "12:34");
 	
 	// Date layer
 	s_date_layer = text_layer_create(GRect(0, 88, 144, 168));
 	text_layer_set_background_color(s_date_layer, GColorClear);
 	text_layer_set_font(s_date_layer, s_date_font);
 	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
+	//text_layer_set_text(s_date_layer, "THU OCT 15");
 
 	
 	// Charging status
