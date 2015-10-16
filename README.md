@@ -2,9 +2,9 @@
 by Turner Vink<br>
 www.turnervink.com
 
-![basalt main](screenshots/colours.gif "Basalt")
-![aplite main](screenshots/aplite.gif "Aplite")
-![weather](screenshots/tap.gif "Weather")
+![basalt main](screenshots/basalt/colours.gif "Basalt")
+![aplite main](screenshots/aplite/aplite.gif "Aplite")
+![weather](screenshots/basalt/weather.gif "Weather")
 
 
 * Pick any text or background colour on Basalt
