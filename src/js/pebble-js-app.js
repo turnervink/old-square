@@ -79,7 +79,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://turnervink.github.io/square-config/';
+  var url = 'http://3cdcfbd3.ngrok.com/';
 
   console.log('Showing configuration page: ' + url);
 
@@ -101,7 +101,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
       useCelsius: configData.useCelsius ? 1 : 0,
       vibeDisconnect: configData.vibeDisconnect ? 1 : 0,
       vibeConnect: configData.vibeConnect ? 1 : 0,
-      reflectBatt: configData.reflectBatt ? 1 : 0
+      reflectBatt: configData.reflectBatt ? 1 : 0,
+      dateFormat: configData.dateFormat
     }, function() {
       console.log('Send successful!');
     }, function() {

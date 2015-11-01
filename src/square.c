@@ -12,6 +12,7 @@
 #define KEY_VIBE_ON_DISCONNECT 9
 #define KEY_VIBE_ON_CONNECT 10
 #define KEY_REFLECT_BATT 12
+#define KEY_DATE_FORMAT 13
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
@@ -24,6 +25,7 @@ static bool show_weather = 1;
 static bool vibe_on_disconnect = 1;
 static bool vibe_on_connect = 1;
 static bool reflect_batt = 1;
+static bool euro_date = 0;
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -119,7 +121,11 @@ static void update_time() {
 	
 	text_layer_set_text(s_time_layer, time_buffer);
 	
-	strftime(date_buffer, sizeof("WWW MMM DD"), "%a %b %d", tick_time);
+	if (euro_date == 1) {
+		strftime(date_buffer, sizeof("WWW DD MMM"), "%a %d %b", tick_time);
+	} else {
+		strftime(date_buffer, sizeof("WWW MMM DD"), "%a %b %d", tick_time);
+	}
 	
 	text_layer_set_text(s_date_layer, date_buffer);
 }
@@ -167,8 +173,15 @@ static void batt_layer_draw(Layer *layer, GContext *ctx) {
 
 	//graphics_fill_rect(ctx, GRect(2, 92, 140-(((100-pct)/10)*14), 2), 0, GCornerNone); // Draw battery
 
-	graphics_fill_rect(ctx, GRect(72, 92, (140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
-	graphics_fill_rect(ctx, GRect(72, 92, -(140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
+	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+
+	/*
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), (140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -(140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
+	*/
+
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), ((bounds.size.w - 4)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -((bounds.size.w - 4)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
 }
 
 static void static_layer_draw(Layer *layer, GContext *ctx) {
@@ -192,7 +205,9 @@ static void static_layer_draw(Layer *layer, GContext *ctx) {
 		}
 	#endif
 
-	graphics_fill_rect(ctx, GRect(2, 92, 140, 2), 0, GCornerNone); // Draw static bar
+	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+
+	graphics_fill_rect(ctx, GRect(2, (bounds.size.h / 2), 140, 2), 0, GCornerNone); // Draw static bar
 }
 
 static void update_layers() {
@@ -274,6 +289,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT);
   Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT);
   Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT);
+  Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT);
 
   if (text_color_t) {
     int text_color = text_color_t->value->int32;
@@ -406,6 +422,20 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	persist_write_int(KEY_REFLECT_BATT, reflect_batt);
   }
 
+  if (date_format_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_DATE_FORMAT received!");
+
+  	if (strcmp(date_format_t->value->cstring, "edate") == 0) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using european date");
+  		euro_date = 1;
+  		persist_write_int(KEY_DATE_FORMAT, euro_date);
+  	} else {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using standard date");
+  		euro_date = 0;
+  		persist_write_int(KEY_DATE_FORMAT, euro_date);
+  	}
+  }
+
   if (reflect_batt == 1) {
 	layer_set_hidden(s_static_layer, true);
 	layer_set_hidden(s_batt_layer, false);
@@ -416,9 +446,12 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 
 
   update_layers();
+  update_time();
 }
 
 static void main_window_load(Window *window) {
+	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+
 	// Create fonts
 	s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_50));
 	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_26));
@@ -429,7 +462,7 @@ static void main_window_load(Window *window) {
 	s_weather_layer_unanimated = layer_create(GRect(0, 0, 144, 168));
 	
 	// Battery bar
-	s_batt_layer = layer_create(GRect(0, 0, 144, 168));
+	s_batt_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	layer_set_update_proc(s_batt_layer, batt_layer_draw);
 
 	// Static bar
@@ -437,16 +470,22 @@ static void main_window_load(Window *window) {
 	layer_set_update_proc(s_static_layer, static_layer_draw);
 
 	// Time layer
-	s_time_layer = text_layer_create(GRect(0, 40, 144, 168));
-	text_layer_set_background_color(s_time_layer, GColorClear);
+	s_time_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	text_layer_set_font(s_time_layer, s_time_font);
+	text_layer_set_text(s_time_layer, "     "); // to get size
+	GSize time_size = text_layer_get_content_size(s_time_layer);
+	layer_set_frame(text_layer_get_layer(s_time_layer), GRect(0, ((bounds.size.h / 2) - time_size.h) - 3, bounds.size.w, bounds.size.h));
+	text_layer_set_background_color(s_time_layer, GColorClear);
 	text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 	//text_layer_set_text(s_time_layer, "12:34");
 	
 	// Date layer
-	s_date_layer = text_layer_create(GRect(0, 88, 144, 168));
-	text_layer_set_background_color(s_date_layer, GColorClear);
+	s_date_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	text_layer_set_font(s_date_layer, s_date_font);
+	text_layer_set_text(s_date_layer, "THU OCT 15");
+	GSize date_size = text_layer_get_content_size(s_date_layer);
+	layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, (bounds.size.h / 2) - 3, bounds.size.w, bounds.size.h));
+	text_layer_set_background_color(s_date_layer, GColorClear);
 	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
 	//text_layer_set_text(s_date_layer, "THU OCT 15");
 
@@ -574,6 +613,11 @@ static void main_window_load(Window *window) {
   			layer_set_hidden(s_weather_layer, true);
   			layer_set_hidden(s_weather_layer_unanimated, true);
   		}
+  	}
+
+  	if (persist_exists(KEY_DATE_FORMAT)) {
+  		euro_date = persist_read_int(KEY_DATE_FORMAT);
+
   	}
 
   	bool connected = bluetooth_connection_service_peek();

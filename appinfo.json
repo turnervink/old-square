@@ -12,7 +12,8 @@
         "vibeDisconnect": 9,
         "vibeConnect": 10,
         "showBluetooth": 11,
-        "reflectBatt": 12
+        "reflectBatt": 12,
+        "dateFormat": 13
     },
     "capabilities": [
         "configurable",
@@ -44,7 +45,8 @@
     "shortName": "Square",
     "targetPlatforms": [
         "aplite",
-        "basalt"
+        "basalt",
+        "chalk"
     ],
     "uuid": "cb332373-4ee5-4c5c-8912-4f62af2d756c",
     "versionLabel": "3.9",
