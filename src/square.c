@@ -180,8 +180,8 @@ static void batt_layer_draw(Layer *layer, GContext *ctx) {
 	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -(140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
 	*/
 
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), ((bounds.size.w - 4)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -((bounds.size.w - 4)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), ((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
 }
 
 static void static_layer_draw(Layer *layer, GContext *ctx) {
