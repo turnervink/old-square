@@ -87,22 +87,24 @@ static void init_animations() {
 }
 
 static void animate_layers() {
+	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+
 	// Weather moves in from bottom
-	GRect wins = GRect(0, 182, 144, 14);
-	GRect winf = GRect(0, 150, 144, 14);
+	GRect wins = GRect(0, 182, bounds.size.w, 14);
+	GRect winf = GRect(0, PBL_IF_ROUND_ELSE(147, 150), bounds.size.w, 14);
 	animate_layer(text_layer_get_layer(s_conditions_layer), &wins, &winf, 1000, 0);
 
-	GRect wouts = GRect(0, 150, 144, 14);
-	GRect woutf = GRect(0, 182, 144, 14);
+	GRect wouts = GRect(0, PBL_IF_ROUND_ELSE(147, 150), bounds.size.w, 14);
+	GRect woutf = GRect(0, 182, bounds.size.w, 14);
 	animate_layer(text_layer_get_layer(s_conditions_layer), &wouts, &woutf, 1000, 5000);
 
 	// Temp moves in from top
-	GRect tins = GRect(0, -32, 144, 14);
-	GRect tinf = GRect(0, 0, 144, 14);
+	GRect tins = GRect(0, -32, bounds.size.w, 14);
+	GRect tinf = GRect(0, PBL_IF_ROUND_ELSE(15, 0), bounds.size.w, 14);
 	animate_layer(text_layer_get_layer(s_temp_layer), &tins, &tinf, 1000, 0);
 
-	GRect touts = GRect(0, 0, 144, 14);
-	GRect toutf = GRect(0, -32, 144, 14);
+	GRect touts = GRect(0, PBL_IF_ROUND_ELSE(15, 0), bounds.size.w, 14);
+	GRect toutf = GRect(0, -32, bounds.size.w, 14);
 	animate_layer(text_layer_get_layer(s_temp_layer), &touts, &toutf, 1000, 5000);
 }
 
@@ -180,8 +182,8 @@ static void batt_layer_draw(Layer *layer, GContext *ctx) {
 	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -(140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
 	*/
 
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), ((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2) + 8, ((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
+	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2) + 8, -((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
 }
 
 static void static_layer_draw(Layer *layer, GContext *ctx) {
@@ -207,7 +209,7 @@ static void static_layer_draw(Layer *layer, GContext *ctx) {
 
 	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
 
-	graphics_fill_rect(ctx, GRect(2, (bounds.size.h / 2), 140, 2), 0, GCornerNone); // Draw static bar
+	graphics_fill_rect(ctx, GRect(PBL_IF_ROUND_ELSE(20, 2), (bounds.size.h / 2) + 8, 140, 2), 0, GCornerNone); // Draw static bar
 }
 
 static void update_layers() {
@@ -458,15 +460,15 @@ static void main_window_load(Window *window) {
 	s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_14));
 
 	// Weather parent layers
-	s_weather_layer = layer_create(GRect(0, 0, 144, 168));
-	s_weather_layer_unanimated = layer_create(GRect(0, 0, 144, 168));
+	s_weather_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	s_weather_layer_unanimated = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	
 	// Battery bar
 	s_batt_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	layer_set_update_proc(s_batt_layer, batt_layer_draw);
 
 	// Static bar
-	s_static_layer = layer_create(GRect(0, 0, 144, 168));
+	s_static_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	layer_set_update_proc(s_static_layer, static_layer_draw);
 
 	// Time layer
@@ -474,7 +476,7 @@ static void main_window_load(Window *window) {
 	text_layer_set_font(s_time_layer, s_time_font);
 	text_layer_set_text(s_time_layer, "     "); // to get size
 	GSize time_size = text_layer_get_content_size(s_time_layer);
-	layer_set_frame(text_layer_get_layer(s_time_layer), GRect(0, ((bounds.size.h / 2) - time_size.h) - 3, bounds.size.w, bounds.size.h));
+	layer_set_frame(text_layer_get_layer(s_time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_time_layer, GColorClear);
 	text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 	//text_layer_set_text(s_time_layer, "12:34");
@@ -484,7 +486,7 @@ static void main_window_load(Window *window) {
 	text_layer_set_font(s_date_layer, s_date_font);
 	text_layer_set_text(s_date_layer, "THU OCT 15");
 	GSize date_size = text_layer_get_content_size(s_date_layer);
-	layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, (bounds.size.h / 2) - 3, bounds.size.w, bounds.size.h));
+	layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_date_layer, GColorClear);
 	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
 	//text_layer_set_text(s_date_layer, "THU OCT 15");
@@ -508,25 +510,25 @@ static void main_window_load(Window *window) {
 
 
 	// Temperature
-	s_temp_layer = text_layer_create(GRect(0, -32, 144, 14));
+	s_temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 14));
 	text_layer_set_background_color(s_temp_layer, GColorClear);
 	text_layer_set_font(s_temp_layer, s_weather_font);
 	text_layer_set_text_alignment(s_temp_layer, GTextAlignmentCenter);
 
 	// Conditions
-	s_conditions_layer = text_layer_create(GRect(0, 182, 144, 14));
+	s_conditions_layer = text_layer_create(GRect(0, 182, bounds.size.w, 14));
 	text_layer_set_font(s_conditions_layer, s_weather_font);
 	text_layer_set_background_color(s_conditions_layer, GColorClear);
 	text_layer_set_text_alignment(s_conditions_layer, GTextAlignmentCenter);
 
 	// Temperature unanimated
-	s_temp_layer_unanimated = text_layer_create(GRect(0, 0, 144, 14));
+	s_temp_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(15, 0), bounds.size.w, 14));
 	text_layer_set_background_color(s_temp_layer_unanimated, GColorClear);
 	text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
 	text_layer_set_text_alignment(s_temp_layer_unanimated, GTextAlignmentCenter);
 
 	// Conditions unanimated
-	s_conditions_layer_unanimated = text_layer_create(GRect(0, 150, 144, 14));
+	s_conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(147, 150), bounds.size.w, 14));
 	text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
 	text_layer_set_background_color(s_conditions_layer_unanimated, GColorClear);
 	text_layer_set_text_alignment(s_conditions_layer_unanimated, GTextAlignmentCenter);
