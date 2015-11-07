@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "languages.h"
 
 #define KEY_TEXT_COLOR 0
 #define KEY_INVERT_COLORS 1
@@ -113,7 +114,8 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 	
   static char time_buffer[] = "00:00";
-	static char date_buffer[] = "WWW MMM DD";
+  static char datn_buffer[] = "DD";
+  static char date_buffer[] = "WWW MMM DD";
   
   if(clock_is_24h_style() == true) {
     strftime(time_buffer, sizeof("00:00"), "%H:%M", tick_time);
@@ -123,11 +125,14 @@ static void update_time() {
 	
 	text_layer_set_text(s_time_layer, time_buffer);
 	
-	if (euro_date == 1) {
+	/*if (euro_date == 1) {
 		strftime(date_buffer, sizeof("WWW DD MMM"), "%a %d %b", tick_time);
 	} else {
 		strftime(date_buffer, sizeof("WWW MMM DD"), "%a %b %d", tick_time);
-	}
+	}*/
+
+	strftime(datn_buffer, sizeof("DD"), "%d", tick_time);
+	snprintf(date_buffer, sizeof(date_buffer), "%s %s MAR", dayNames[0][0][1], datn_buffer);
 	
 	text_layer_set_text(s_date_layer, date_buffer);
 }
