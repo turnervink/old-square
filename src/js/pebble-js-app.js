@@ -9,7 +9,9 @@ var xhrRequest = function (url, type, callback) {
 
 function locationSuccess(pos) {
   // Construct URL
-  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&APPID=2874bea34ea1f91820fa07af69939eea';
+  console.log("Lan is " + lang);
+  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea';
+  //var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + '10'+ '&lon=' + '10' '+ '&lang=fr' + '&appid=2874bea34ea1f91820fa07af69939eea';
   
   console.log("Lat is " + pos.coords.latitude);
   console.log("Lon is " + pos.coords.longitude);
@@ -79,7 +81,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://turnervink.github.io/square-config/';
+  var url = 'http://7658488.ngrok.com';
 
   console.log('Showing configuration page: ' + url);
 
@@ -92,6 +94,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   console.log('Configuration page returned: ' + JSON.stringify(configData));
 
   if (configData.textColor) {
+
     Pebble.sendAppMessage({
       textColor: parseInt(configData.textColor, 16),
       backgroundColor: parseInt(configData.backgroundColor, 16),
@@ -102,7 +105,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
       vibeDisconnect: configData.vibeDisconnect ? 1 : 0,
       vibeConnect: configData.vibeConnect ? 1 : 0,
       reflectBatt: configData.reflectBatt ? 1 : 0,
-      dateFormat: configData.dateFormat
+      dateFormat: configData.dateFormat,
+      langSel: configData.langSel
     }, function() {
       console.log('Send successful!');
     }, function() {

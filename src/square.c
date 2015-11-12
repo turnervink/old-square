@@ -14,6 +14,7 @@
 #define KEY_VIBE_ON_CONNECT 10
 #define KEY_REFLECT_BATT 12
 #define KEY_DATE_FORMAT 13
+#define KEY_LANGUAGE 14
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
@@ -29,14 +30,16 @@ static bool reflect_batt = 1;
 static bool euro_date = 0;
 
 
-static int lang = 2; // for testing
+static int lang;
+// static int lang = 0; // hardcoded for testing
 
 /*
 LANGUAGE CODES
 
 english 0
 french 1
-spanish 3
+spanish 2
+german 3
 
 */
 
@@ -136,19 +139,17 @@ static void update_time() {
   }
 	
 	text_layer_set_text(s_time_layer, time_buffer);
-	
-	/*if (euro_date == 1) {
-		strftime(date_buffer, sizeof("WWW DD MMM"), "%a %d %b", tick_time);
-	} else {
-		strftime(date_buffer, sizeof("WWW MMM DD"), "%a %b %d", tick_time);
-	}*/
-
-	int month = tick_time->tm_mon;
-	int weekday = tick_time->tm_wday;
 
 	strftime(datn_buffer, sizeof("DD"), "%d", tick_time);
-	snprintf(date_buffer, sizeof(date_buffer), "%s %s %s", dayNames[lang][weekday], monthNames[lang][month], datn_buffer);
+	int month = tick_time->tm_mon;
+	int weekday = tick_time->tm_wday;
 	
+	if (euro_date == 1) {
+		snprintf(date_buffer, sizeof(date_buffer), "%s %s %s", dayNames[lang][weekday], datn_buffer, monthNames[lang][month]);
+	} else {
+		snprintf(date_buffer, sizeof(date_buffer), "%s %s %s", dayNames[lang][weekday], monthNames[lang][month], datn_buffer);
+	}
+
 	text_layer_set_text(s_date_layer, date_buffer);
 }
 
@@ -312,6 +313,32 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT);
   Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT);
   Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT);
+  Tuple *lang_t = dict_find(iter, KEY_LANGUAGE);
+
+  if (lang_t) {
+  	if (strcmp(lang_t->value->cstring, "en") == 0) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
+  		lang = 0;
+  		persist_write_int(KEY_DATE_FORMAT, euro_date);
+  	} else if (strcmp(lang_t->value->cstring, "fr") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
+  		lang = 1;
+  		persist_write_int(KEY_DATE_FORMAT, euro_date);
+  	} else if (strcmp(lang_t->value->cstring, "es") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
+  		lang = 2;
+  		persist_write_int(KEY_DATE_FORMAT, euro_date);
+  	} else if (strcmp(lang_t->value->cstring, "de") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
+  		lang = 3;
+  		persist_write_int(KEY_DATE_FORMAT, euro_date);
+  	} else {
+  		lang = 0;
+  	}
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
+
+  	persist_write_int(KEY_LANGUAGE, lang);
+  }
 
   if (text_color_t) {
     int text_color = text_color_t->value->int32;
@@ -504,7 +531,7 @@ static void main_window_load(Window *window) {
 	// Date layer
 	s_date_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	text_layer_set_font(s_date_layer, s_date_font);
-	text_layer_set_text(s_date_layer, "THU OCT 15");
+	text_layer_set_text(s_date_layer, "          ");
 	GSize date_size = text_layer_get_content_size(s_date_layer);
 	layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_date_layer, GColorClear);
@@ -640,6 +667,12 @@ static void main_window_load(Window *window) {
   	if (persist_exists(KEY_DATE_FORMAT)) {
   		euro_date = persist_read_int(KEY_DATE_FORMAT);
 
+  	}
+
+  	if (persist_exists(KEY_LANGUAGE)) {
+  		lang = persist_read_int(KEY_LANGUAGE);
+  	} else {
+  		lang = 0;
   	}
 
   	bool connected = bluetooth_connection_service_peek();

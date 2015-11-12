@@ -13,7 +13,8 @@
         "vibeConnect": 10,
         "showBluetooth": 11,
         "reflectBatt": 12,
-        "dateFormat": 13
+        "dateFormat": 13,
+        "langSel": 14
     },
     "capabilities": [
         "configurable",

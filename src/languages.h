@@ -1,4 +1,4 @@
 #pragma once
 
-const char* dayNames[3][7];
-const char* monthNames[3][12];
+const char* dayNames[4][7];
+const char* monthNames[4][12];
