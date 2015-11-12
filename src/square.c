@@ -153,6 +153,21 @@ static void update_time() {
 	text_layer_set_text(s_date_layer, date_buffer);
 }
 
+static void update_weather() {
+	if (show_weather == 1) {
+		// Update weather every 30 minutes
+		// Begin dictionary
+		DictionaryIterator *iter;
+		app_message_outbox_begin(&iter);
+
+		// Add a key-value pair
+		dict_write_uint8(iter, 0, 0);
+
+		// Send the message!
+		app_message_outbox_send();
+	}
+}
+
 static void charge_handler() {
 	BatteryChargeState state = battery_state_service_peek();
 	bool charging = state.is_charging;
@@ -316,6 +331,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *lang_t = dict_find(iter, KEY_LANGUAGE);
 
   if (lang_t) {
+  	update_weather();
   	if (strcmp(lang_t->value->cstring, "en") == 0) {
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
   		lang = 0;
@@ -707,7 +723,6 @@ static void main_window_unload(Window *window) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	update_time();
-
 	if (show_weather == 1) {
 		// Update weather every 30 minutes
 		if(tick_time->tm_min % 30 == 0) {

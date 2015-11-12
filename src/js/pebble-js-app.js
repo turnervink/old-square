@@ -7,10 +7,12 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
+var lang = 'en';
+
 function locationSuccess(pos) {
   // Construct URL
-  console.log("Lan is " + lang);
-  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea';
+  console.log("Lang is " + lang);
+  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea&lang=' + lang;
   //var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + '10'+ '&lon=' + '10' '+ '&lang=fr' + '&appid=2874bea34ea1f91820fa07af69939eea';
   
   console.log("Lat is " + pos.coords.latitude);
@@ -31,7 +33,7 @@ function locationSuccess(pos) {
       console.log("Temperature in Celsius is " + temperaturec);
 
       // Conditions
-      var conditions = json.weather[0].main;      
+      var conditions = json.weather[0].description;      
       console.log("Conditions are " + conditions);
       
       // Assemble dictionary using our keys
@@ -81,7 +83,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://7658488.ngrok.com';
+  var url = 'http://6cfb3ed9.ngrok.com';
 
   console.log('Showing configuration page: ' + url);
 
@@ -94,6 +96,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
   console.log('Configuration page returned: ' + JSON.stringify(configData));
 
   if (configData.textColor) {
+
+    lang = configData.langSel;
 
     Pebble.sendAppMessage({
       textColor: parseInt(configData.textColor, 16),
