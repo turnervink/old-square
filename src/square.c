@@ -28,6 +28,18 @@ static bool vibe_on_connect = 1;
 static bool reflect_batt = 1;
 static bool euro_date = 0;
 
+
+static int lang = 2; // for testing
+
+/*
+LANGUAGE CODES
+
+english 0
+french 1
+spanish 3
+
+*/
+
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
     property_animation_destroy((PropertyAnimation*) anim);
@@ -131,8 +143,11 @@ static void update_time() {
 		strftime(date_buffer, sizeof("WWW MMM DD"), "%a %b %d", tick_time);
 	}*/
 
+	int month = tick_time->tm_mon;
+	int weekday = tick_time->tm_wday;
+
 	strftime(datn_buffer, sizeof("DD"), "%d", tick_time);
-	snprintf(date_buffer, sizeof(date_buffer), "%s %s MAR", dayNames[0][0][1], datn_buffer);
+	snprintf(date_buffer, sizeof(date_buffer), "%s %s %s", dayNames[lang][weekday], monthNames[lang][month], datn_buffer);
 	
 	text_layer_set_text(s_date_layer, date_buffer);
 }
