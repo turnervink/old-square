@@ -10,12 +10,11 @@ var xhrRequest = function (url, type, callback) {
 function locationSuccess(pos) {
   // Construct URL
   var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea';
-  //var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + '10'+ '&lon=' + '10' '+ '&lang=fr' + '&appid=2874bea34ea1f91820fa07af69939eea';
   
   console.log("Lat is " + pos.coords.latitude);
   console.log("Lon is " + pos.coords.longitude);
 
-  // Send request to forecast.io
+  // Send request to openweathermap
   xhrRequest(url, 'GET', 
     function(responseText) {
       console.log("Parsing JSON");
@@ -78,6 +77,8 @@ Pebble.addEventListener('appmessage',
     getWeather();
   }                     
 );
+
+// ========== CONFIGURATION ========== //
 
 Pebble.addEventListener('showConfiguration', function() {
   var url = 'http://6cfb3ed9.ngrok.com';
