@@ -7,12 +7,9 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
-var lang = 'en';
-
 function locationSuccess(pos) {
   // Construct URL
-  console.log("Lang is " + lang);
-  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea&lang=' + lang;
+  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea';
   //var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + '10'+ '&lon=' + '10' '+ '&lang=fr' + '&appid=2874bea34ea1f91820fa07af69939eea';
   
   console.log("Lat is " + pos.coords.latitude);
@@ -97,7 +94,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
 
   if (configData.textColor) {
 
-    lang = configData.langSel;
+    //lang = configData.langSel;
 
     Pebble.sendAppMessage({
       textColor: parseInt(configData.textColor, 16),

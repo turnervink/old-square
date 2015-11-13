@@ -153,21 +153,6 @@ static void update_time() {
 	text_layer_set_text(s_date_layer, date_buffer);
 }
 
-static void update_weather() {
-	if (show_weather == 1) {
-		// Update weather every 30 minutes
-		// Begin dictionary
-		DictionaryIterator *iter;
-		app_message_outbox_begin(&iter);
-
-		// Add a key-value pair
-		dict_write_uint8(iter, 0, 0);
-
-		// Send the message!
-		app_message_outbox_send();
-	}
-}
-
 static void charge_handler() {
 	BatteryChargeState state = battery_state_service_peek();
 	bool charging = state.is_charging;
@@ -314,6 +299,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   static char temp_buffer[15];
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
+  static char units_buffer[15];
 
   Tuple *text_color_t = dict_find(iter, KEY_TEXT_COLOR);
   Tuple *invert_colors_t = dict_find(iter, KEY_INVERT_COLORS);
@@ -331,23 +317,19 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *lang_t = dict_find(iter, KEY_LANGUAGE);
 
   if (lang_t) {
-  	update_weather();
+  	//update_weather();
   	if (strcmp(lang_t->value->cstring, "en") == 0) {
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
   		lang = 0;
-  		persist_write_int(KEY_DATE_FORMAT, euro_date);
   	} else if (strcmp(lang_t->value->cstring, "fr") == 0){
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
   		lang = 1;
-  		persist_write_int(KEY_DATE_FORMAT, euro_date);
   	} else if (strcmp(lang_t->value->cstring, "es") == 0){
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
   		lang = 2;
-  		persist_write_int(KEY_DATE_FORMAT, euro_date);
   	} else if (strcmp(lang_t->value->cstring, "de") == 0){
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
   		lang = 3;
-  		persist_write_int(KEY_DATE_FORMAT, euro_date);
   	} else {
   		lang = 0;
   	}
@@ -391,30 +373,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
     #else
     	inverter();
     #endif
-
-  /*if (invert_colors == 1) {
-    #ifdef PBL_COLOR
-    	// Do not try to invert
-    #else
-	    if (invert_colors == 1) {
-	    	window_set_background_color(s_main_window, GColorWhite);
-			text_layer_set_text_color(s_time_layer, GColorBlack);
-			text_layer_set_text_color(s_date_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
-	    } else {
-	    	window_set_background_color(s_main_window, GColorBlack);
-			text_layer_set_text_color(s_time_layer, GColorWhite);
-			text_layer_set_text_color(s_date_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
-	    }
-	#endif
-    }*/
   }
 
   if (use_celsius_t) {
@@ -444,13 +402,13 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   if (temperature_t) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE received!");
 
-  	snprintf(temp_buffer, sizeof(temp_buffer), "%d degrees", (int)temperature_t->value->int32);
+  	snprintf(temp_buffer, sizeof(temp_buffer), "%d°", (int)temperature_t->value->int32);
   }
 
   if (temperature_in_c_t) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE_IN_C received!");
 
-  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d degrees", (int)temperature_in_c_t->value->int32);
+  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d°", (int)temperature_in_c_t->value->int32);
   }
 
   if (conditions_t) {
@@ -731,7 +689,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 			app_message_outbox_begin(&iter);
 
 			// Add a key-value pair
-			dict_write_uint8(iter, 0, 0);
+			dict_write_uint8(iter, 1, 0);
 
 			// Send the message!
 			app_message_outbox_send();
