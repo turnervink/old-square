@@ -15,11 +15,13 @@
 #define KEY_REFLECT_BATT 12
 #define KEY_DATE_FORMAT 13
 #define KEY_LANGUAGE 14
+#define KEY_READY 15
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
 static GFont s_time_font, s_date_font, s_weather_font;
 static Layer *s_batt_layer, *s_static_layer, *s_weather_layer, *s_weather_layer_unanimated;
+static bool ready = 0;
 static bool invert_colors = 0;
 static bool use_celsius = 0;
 static bool shake_for_weather = 1;
@@ -295,11 +297,29 @@ static void inverter() {
 	    }
 }
 
+static void sendLang(char* lang) {
+	APP_LOG(APP_LOG_LEVEL_INFO, "sendLang");
+	// Begin dictionary
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+
+	// Add a key-value pair
+	dict_write_cstring(iter, 14, lang);
+
+	APP_LOG(APP_LOG_LEVEL_INFO, "Ready is 1. Sending language to JS");
+	// Send the message!
+	app_message_outbox_send();
+	
+
+}
+
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   static char temp_buffer[15];
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
   static char units_buffer[15];
+
+  Tuple *ready_t = dict_find(iter, KEY_READY);
 
   Tuple *text_color_t = dict_find(iter, KEY_TEXT_COLOR);
   Tuple *invert_colors_t = dict_find(iter, KEY_INVERT_COLORS);
@@ -316,8 +336,26 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT);
   Tuple *lang_t = dict_find(iter, KEY_LANGUAGE);
 
+  if (ready_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
+  	ready = 1;
+
+  	if (lang == 0) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
+			sendLang("en");
+  	} else if (lang == 1) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
+  		sendLang("fr");
+  	}	else if (lang == 2) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
+  		sendLang("es");
+  	} else if (lang == 3) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
+  		sendLang("de");
+  	} 
+  }
+
   if (lang_t) {
-  	//update_weather();
   	if (strcmp(lang_t->value->cstring, "en") == 0) {
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
   		lang = 0;
@@ -334,6 +372,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   		lang = 0;
   	}
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
+  	sendLang(lang_t->value->cstring);
 
   	persist_write_int(KEY_LANGUAGE, lang);
   }
@@ -644,6 +683,7 @@ static void main_window_load(Window *window) {
   	}
 
   	if (persist_exists(KEY_LANGUAGE)) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE exists!");
   		lang = persist_read_int(KEY_LANGUAGE);
   	} else {
   		lang = 0;
@@ -689,12 +729,24 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 			app_message_outbox_begin(&iter);
 
 			// Add a key-value pair
-			dict_write_uint8(iter, 1, 0);
+			dict_write_uint8(iter, 4, 0);
 
 			// Send the message!
 			app_message_outbox_send();
 		}
 	}
+}
+
+static void update_weather() {
+	// Begin dictionary
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+
+	// Add a key-value pair
+	dict_write_uint8(iter, 4, 0);
+
+	// Send the message!
+	app_message_outbox_send();
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {

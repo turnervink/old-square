@@ -7,12 +7,15 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
+var lang;
+
 function locationSuccess(pos) {
   // Construct URL
-  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea';
+  var url = 'http://api.openweathermap.org/data/2.5/weather?lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude + '&appid=2874bea34ea1f91820fa07af69939eea&lang=' + lang;
   
   console.log("Lat is " + pos.coords.latitude);
   console.log("Lon is " + pos.coords.longitude);
+  console.log('URL is ' + url);
 
   // Send request to openweathermap
   xhrRequest(url, 'GET', 
@@ -68,20 +71,36 @@ Pebble.addEventListener('ready', function() {
   console.log('PebbleKit JS Ready! Getting weather.');
 
   getWeather();
+
+  Pebble.sendAppMessage({'15': 'ready'});
 });
 
 Pebble.addEventListener('appmessage',
   function(e) {
-    console.log('AppMessage received! Updating weather.');
+    console.log('AppMessage received!');
+    console.log('Message contents: ' + JSON.stringify(e.payload));
 
-    getWeather();
+    var messageContents = e.payload;
+    console.log(messageContents.KEY_CONDITIONS);
+
+    if ("KEY_CONDITIONS" in messageContents) { // If KEY_CONDITIONS exists in the appmessage
+      console.log('KEY_CONDITIONS rec in am');
+      getWeather(); // Fetch the weather
+    }
+
+    if ("langSel" in messageContents) { // If KEY_LANGUAGE exists in appmessage
+      console.log('KEY_LANGUAGE in rec in am');
+      lang = messageContents.langSel; // Set lang to the value of KEY_LANGUAGE
+      getWeather(); // Fetch the weather with new language
+    }
+
   }                     
 );
 
 // ========== CONFIGURATION ========== //
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://6cfb3ed9.ngrok.com';
+  var url = 'http://17732344.ngrok.com';
 
   console.log('Showing configuration page: ' + url);
 
