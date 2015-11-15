@@ -83,12 +83,12 @@ Pebble.addEventListener('appmessage',
     var messageContents = e.payload;
     console.log(messageContents.KEY_CONDITIONS);
 
-    if ("KEY_CONDITIONS" in messageContents) { // If KEY_CONDITIONS exists in the appmessage
+    if (e.payload['KEY_CONDITIONS']) { // If KEY_CONDITIONS exists in the appmessage
       console.log('KEY_CONDITIONS rec in am');
       getWeather(); // Fetch the weather
     }
 
-    if ("langSel" in messageContents) { // If KEY_LANGUAGE exists in appmessage
+    if (e.payload['langSel']) { // If KEY_LANGUAGE exists in appmessage
       console.log('KEY_LANGUAGE in rec in am');
       lang = messageContents.langSel; // Set lang to the value of KEY_LANGUAGE
       getWeather(); // Fetch the weather with new language
