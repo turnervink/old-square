@@ -7,7 +7,7 @@ var xhrRequest = function (url, type, callback) {
   xhr.send();
 };
 
-var lang;
+var lang; // Language code
 
 function locationSuccess(pos) {
   // Construct URL
@@ -17,32 +17,32 @@ function locationSuccess(pos) {
   console.log("Lon is " + pos.coords.longitude);
   console.log('URL is ' + url);
 
-  // Send request to openweathermap
+  // Send request to OpenWeatherMap
   xhrRequest(url, 'GET', 
     function(responseText) {
       console.log("Parsing JSON");
-      // responseText contains a JSON object with weather info
-      var json = JSON.parse(responseText);
+      
+      var json = JSON.parse(responseText); // Parse JSON response
       console.log(JSON.parse(responseText));
 
-      var temperature = Math.round(((json.main.temp - 273.15) * 1.8) + 32);
+      var temperature = Math.round(((json.main.temp - 273.15) * 1.8) + 32); // Convert from Kelvin to Fahrenheit
       console.log("Temperature in Fahrenheit is " + temperature);
       
-      var temperaturec = Math.round(json.main.temp - 273.15);
+      var temperaturec = Math.round(json.main.temp - 273.15); // Convert from Kelvin to Celsius
       console.log("Temperature in Celsius is " + temperaturec);
 
       // Conditions
       var conditions = json.weather[0].description;      
       console.log("Conditions are " + conditions);
       
-      // Assemble dictionary using our keys
+      // Assemble weather info into dictionary
       var dictionary = {
         "KEY_TEMPERATURE": temperature,
         "KEY_TEMPERATURE_IN_C": temperaturec,
         "KEY_CONDITIONS": conditions,
       };
 
-      // Send to Pebble
+      // Send dictionary to Pebble
       Pebble.sendAppMessage(dictionary,
         function(e) {
           console.log("Weather info sent to Pebble successfully!");
@@ -68,11 +68,11 @@ function getWeather() {
 }
 
 Pebble.addEventListener('ready', function() {
-  console.log('PebbleKit JS Ready! Getting weather.');
+  console.log('PebbleKit JS Ready!');
 
-  getWeather();
+  getWeather(); // Get weather
 
-  Pebble.sendAppMessage({'15': 'ready'});
+  Pebble.sendAppMessage({'15': 'ready'}); // Signal watch that JS is ready
 });
 
 Pebble.addEventListener('appmessage',
@@ -100,7 +100,7 @@ Pebble.addEventListener('appmessage',
 // ========== CONFIGURATION ========== //
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://17732344.ngrok.com';
+  var url = 'http://7658488.ngrok.com';
 
   console.log('Showing configuration page: ' + url);
 
@@ -112,10 +112,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
 
   console.log('Configuration page returned: ' + JSON.stringify(configData));
 
-  if (configData.textColor) {
-
-    //lang = configData.langSel;
-
+  if (configData.textColor) { // If we have received the correct data (not sure why we wouldn't, but who knows?)
+    // Send all keys to Pebble
     Pebble.sendAppMessage({
       textColor: parseInt(configData.textColor, 16),
       backgroundColor: parseInt(configData.backgroundColor, 16),

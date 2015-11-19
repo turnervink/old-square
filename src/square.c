@@ -32,8 +32,8 @@ static bool reflect_batt = 1;
 static bool euro_date = 0;
 
 
-static int lang;
-// static int lang = 0; // hardcoded for testing
+static int lang; // User selected language code
+//static int lang = 0; // Hardcoded for testing
 
 /*
 LANGUAGE CODES
@@ -131,8 +131,8 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 	
   static char time_buffer[] = "00:00";
-  static char datn_buffer[] = "DD";
-  static char date_buffer[] = "WWW MMM DD";
+  static char datn_buffer[] = "DD"; // Buffer for date number
+  static char date_buffer[] = "WWW MMM DD"; // Buffer for entire date to display
   
   if(clock_is_24h_style() == true) {
     strftime(time_buffer, sizeof("00:00"), "%H:%M", tick_time);
@@ -142,17 +142,18 @@ static void update_time() {
 	
 	text_layer_set_text(s_time_layer, time_buffer);
 
-	strftime(datn_buffer, sizeof("DD"), "%d", tick_time);
-	int month = tick_time->tm_mon;
-	int weekday = tick_time->tm_wday;
+	strftime(datn_buffer, sizeof("DD"), "%d", tick_time); // Write current date to buffer
+	int month = tick_time->tm_mon; // Get current month as an integer
+	int weekday = tick_time->tm_wday; // Get current weekday as an integer (0 is Sunday)
 	
-	if (euro_date == 1) {
+	// Select the correct strings from languages.c and write to buffer along with date
+	if (euro_date == 1) { // If the user has selected the WWW DD MMM date format
 		snprintf(date_buffer, sizeof(date_buffer), "%s %s %s", dayNames[lang][weekday], datn_buffer, monthNames[lang][month]);
 	} else {
 		snprintf(date_buffer, sizeof(date_buffer), "%s %s %s", dayNames[lang][weekday], monthNames[lang][month], datn_buffer);
 	}
 
-	text_layer_set_text(s_date_layer, date_buffer);
+	text_layer_set_text(s_date_layer, date_buffer); // Display the date info
 }
 
 static void charge_handler() {
@@ -248,6 +249,14 @@ static void update_layers() {
 			layer_set_hidden(s_weather_layer_unanimated, true);
 		}
 	}
+
+	if (reflect_batt == 1) {
+		layer_set_hidden(s_static_layer, true);
+		layer_set_hidden(s_batt_layer, false);
+  	} else {
+		layer_set_hidden(s_static_layer, false);
+		layer_set_hidden(s_batt_layer, true);
+  	}
 }
 
 static void set_text_color(int color) {
@@ -297,27 +306,23 @@ static void inverter() {
 	    }
 }
 
-static void sendLang(char* lang) {
-	APP_LOG(APP_LOG_LEVEL_INFO, "sendLang");
+static void sendLang(char* lang) { // Send selected language to JS to fetch weather
+	APP_LOG(APP_LOG_LEVEL_INFO, "Sending lang to JS - %s", lang);
 	// Begin dictionary
 	DictionaryIterator *iter;
 	app_message_outbox_begin(&iter);
 
 	// Add a key-value pair
-	dict_write_cstring(iter, 14, lang);
+	dict_write_cstring(iter, 14, lang); // Key 14 is KEY_LANGUAGE
 
-	APP_LOG(APP_LOG_LEVEL_INFO, "Ready is 1. Sending language to JS");
 	// Send the message!
 	app_message_outbox_send();
-	
-
 }
 
 static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   static char temp_buffer[15];
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
-  static char units_buffer[15];
 
   Tuple *ready_t = dict_find(iter, KEY_READY);
 
@@ -336,26 +341,15 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT);
   Tuple *lang_t = dict_find(iter, KEY_LANGUAGE);
 
-  if (ready_t) {
+  if (ready_t) { // Wait for JS to be ready before requesting weather in selected language
   	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
   	ready = 1;
 
-  	if (lang == 0) {
-			APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
-			sendLang("en");
-  	} else if (lang == 1) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
-  		sendLang("fr");
-  	}	else if (lang == 2) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
-  		sendLang("es");
-  	} else if (lang == 3) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
-  		sendLang("de");
-  	} 
+  	sendLang(langCodes[lang]);
   }
 
   if (lang_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
   	if (strcmp(lang_t->value->cstring, "en") == 0) {
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
   		lang = 0;
@@ -402,6 +396,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   }
 
   if (invert_colors_t) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS received!");
     invert_colors = invert_colors_t->value->int8;
 
 
@@ -498,15 +493,6 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   	}
   }
 
-  if (reflect_batt == 1) {
-	layer_set_hidden(s_static_layer, true);
-	layer_set_hidden(s_batt_layer, false);
-  } else {
-	layer_set_hidden(s_static_layer, false);
-	layer_set_hidden(s_batt_layer, true);
-  }
-
-
   update_layers();
   update_time();
 }
@@ -550,10 +536,9 @@ static void main_window_load(Window *window) {
 	text_layer_set_background_color(s_date_layer, GColorClear);
 	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
 	//text_layer_set_text(s_date_layer, "THU OCT 15");
-
 	
 	// Charging status
-	s_charge_layer = text_layer_create(GRect(0, 112, 144, 168));
+	s_charge_layer = text_layer_create(GRect(0, 112, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_charge_layer, GColorClear);
 	text_layer_set_font(s_charge_layer, s_weather_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
@@ -561,13 +546,13 @@ static void main_window_load(Window *window) {
 	layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
 
 	// Bluetooth status
-	s_bluetooth_layer = text_layer_create(GRect(0, 39, 144, 168));
+	s_bluetooth_layer = text_layer_create(GRect(0, 37, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_bluetooth_layer, GColorClear);
 	text_layer_set_font(s_bluetooth_layer, s_weather_font);
 	text_layer_set_text_alignment(s_bluetooth_layer, GTextAlignmentCenter);
 	text_layer_set_text(s_bluetooth_layer, "BT");
 
-
+	// ========== WEATHER LAYERS ========== //
 
 	// Temperature
 	s_temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 14));
@@ -593,7 +578,7 @@ static void main_window_load(Window *window) {
 	text_layer_set_background_color(s_conditions_layer_unanimated, GColorClear);
 	text_layer_set_text_alignment(s_conditions_layer_unanimated, GTextAlignmentCenter);
 	
-	/* Add children */
+	// ========== ADD CHILDREN ========== //
 
 	// Main elements
 	layer_add_child(window_get_root_layer(window), s_batt_layer);
@@ -613,12 +598,12 @@ static void main_window_load(Window *window) {
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_temp_layer_unanimated));
 	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_conditions_layer_unanimated));
 
-	/* Check for existing keys */
+	// ========== CHECK FOR EXISTING KEYS ========== //
 	
 	#ifdef PBL_COLOR
 		if (persist_exists(KEY_TEXT_COLOR)) {
 	    	int text_color = persist_read_int(KEY_TEXT_COLOR);
-	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists!");
+	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists! - %d", text_color);
 	    	set_text_color(text_color);
 	    } else {
 	    	set_text_color(0xFFFFFF); // white
@@ -626,7 +611,7 @@ static void main_window_load(Window *window) {
 
 	    if (persist_exists(KEY_BACKGROUND_COLOR)) {
 	    	int bg_color = persist_read_int(KEY_BACKGROUND_COLOR);
-	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR exists!");
+	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR exists! - %d", bg_color);
 	    	set_background_color(bg_color);
 	    } else {
 	    	set_background_color(0x000000); // black
@@ -636,23 +621,26 @@ static void main_window_load(Window *window) {
 
 	#ifdef PBL_BW
 	    if (persist_exists(KEY_INVERT_COLORS)) {
-	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS exists!");
 	    	invert_colors = persist_read_int(KEY_INVERT_COLORS);
+	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS exists! - %d", invert_colors);
 	    }
 
 	    inverter();
 	#endif
 
 	if (persist_exists(KEY_USE_CELSIUS)) {
-  	  use_celsius = persist_read_int(KEY_USE_CELSIUS);
+  	  	use_celsius = persist_read_int(KEY_USE_CELSIUS);
+  	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_USE_CELSIUS exists! - %d", use_celsius);
   	}
 
   	if (persist_exists(KEY_SHAKE_FOR_WEATHER)) {
-  	  shake_for_weather = persist_read_int(KEY_SHAKE_FOR_WEATHER);
+  	  	shake_for_weather = persist_read_int(KEY_SHAKE_FOR_WEATHER);
+  	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHAKE_FOR_WEATHER exists! - %d", shake_for_weather);
   	}
 
   	if (persist_exists(KEY_REFLECT_BATT)) {
-  	  reflect_batt = persist_read_int(KEY_REFLECT_BATT);
+  	  	reflect_batt = persist_read_int(KEY_REFLECT_BATT);
+  	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT exists! - %d", reflect_batt);
 
   	  	if (reflect_batt == 1) {
   			layer_set_hidden(s_static_layer, true);
@@ -668,6 +656,7 @@ static void main_window_load(Window *window) {
 
   	if (persist_exists(KEY_SHOW_WEATHER)) {
   		show_weather = persist_read_int(KEY_SHOW_WEATHER);
+  		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER exists! - %d", show_weather);
 
   		if (show_weather == 1) {
   			update_layers();
@@ -679,12 +668,13 @@ static void main_window_load(Window *window) {
 
   	if (persist_exists(KEY_DATE_FORMAT)) {
   		euro_date = persist_read_int(KEY_DATE_FORMAT);
+  		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_DATE_FORMAT exists! - %d", euro_date);
 
   	}
 
   	if (persist_exists(KEY_LANGUAGE)) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE exists!");
   		lang = persist_read_int(KEY_LANGUAGE);
+  		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE exists! - %s", langCodes[lang]);
   	} else {
   		lang = 0;
   	}
