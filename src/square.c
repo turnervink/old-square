@@ -538,7 +538,7 @@ static void main_window_load(Window *window) {
 	//text_layer_set_text(s_date_layer, "THU OCT 15");
 	
 	// Charging status
-	s_charge_layer = text_layer_create(GRect(0, 112, bounds.size.w, bounds.size.h));
+	s_charge_layer = text_layer_create(GRect(0, 114, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_charge_layer, GColorClear);
 	text_layer_set_font(s_charge_layer, s_weather_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);

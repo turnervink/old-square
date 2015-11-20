@@ -1,21 +1,21 @@
 {
     "appKeys": {
-        "textColor": 0,
-        "invertColors": 1,
+        "KEY_CONDITIONS": 4,
+        "KEY_READY": 15,
         "KEY_TEMPERATURE": 2,
         "KEY_TEMPERATURE_IN_C": 3,
-        "KEY_CONDITIONS": 4,
-        "shakeWeather": 5,
-        "useCelsius": 6,
         "backgroundColor": 7,
-        "showWeather": 8,
-        "vibeDisconnect": 9,
-        "vibeConnect": 10,
-        "showBluetooth": 11,
-        "reflectBatt": 12,
         "dateFormat": 13,
+        "invertColors": 1,
         "langSel": 14,
-        "KEY_READY": 15
+        "reflectBatt": 12,
+        "shakeWeather": 5,
+        "showBluetooth": 11,
+        "showWeather": 8,
+        "textColor": 0,
+        "useCelsius": 6,
+        "vibeConnect": 10,
+        "vibeDisconnect": 9
     },
     "capabilities": [
         "configurable",
@@ -28,7 +28,7 @@
         "media": [
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_14",
+                "name": "FONT_SQUARE_26",
                 "type": "font"
             },
             {
@@ -38,7 +38,7 @@
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_26",
+                "name": "FONT_SQUARE_14",
                 "type": "font"
             }
         ]
