@@ -245,8 +245,6 @@ static void set_background_color(int bgcolor) {
 	#ifdef PBL_COLOR
 		GColor bg_color = GColorFromHEX(bgcolor);
 		window_set_background_color(s_main_window, bg_color);
-  	#else
-
   	#endif
 }
 
@@ -307,7 +305,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 
   if (background_color_t) {
   	int bg_color = background_color_t->value->int32;
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR received!");
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR received! - %d", bg_color);
 
   	persist_write_int(KEY_BACKGROUND_COLOR, bg_color);
   	#ifdef PBL_COLOR

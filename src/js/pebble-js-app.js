@@ -79,7 +79,7 @@ Pebble.addEventListener('appmessage',
 );
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://turnervink.github.io/square-config/';
+  var url = 'http://7658488.ngrok.com';
 
   console.log('Showing configuration page: ' + url);
 
@@ -90,6 +90,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   var configData = JSON.parse(decodeURIComponent(e.response));
 
   console.log('Configuration page returned: ' + JSON.stringify(configData));
+  console.log('Background color is ' + parseInt(configData.textColor, 16));
 
   if (configData.textColor) {
     Pebble.sendAppMessage({
