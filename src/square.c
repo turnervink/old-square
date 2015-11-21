@@ -277,8 +277,6 @@ static void set_background_color(int bgcolor) {
 	#ifdef PBL_COLOR
 		GColor bg_color = GColorFromHEX(bgcolor);
 		window_set_background_color(s_main_window, bg_color);
-  	#else
-
   	#endif
 }
 
@@ -402,9 +400,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 
     persist_write_int(KEY_INVERT_COLORS, invert_colors);
 
-    #ifdef PBL_COLOR
-
-    #else
+    #ifdef PBL_BW
     	inverter();
     #endif
   }
@@ -520,9 +516,7 @@ static void main_window_load(Window *window) {
 	// Time layer
 	s_time_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	text_layer_set_font(s_time_layer, s_time_font);
-	text_layer_set_text(s_time_layer, "     "); // to get size
-	GSize time_size = text_layer_get_content_size(s_time_layer);
-	layer_set_frame(text_layer_get_layer(s_time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, bounds.size.h));
+	//text_layer_set_text(s_time_layer, "     "); // to get size
 	text_layer_set_background_color(s_time_layer, GColorClear);
 	text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
 	//text_layer_set_text(s_time_layer, "12:34");
@@ -531,14 +525,22 @@ static void main_window_load(Window *window) {
 	s_date_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	text_layer_set_font(s_date_layer, s_date_font);
 	text_layer_set_text(s_date_layer, "          ");
-	GSize date_size = text_layer_get_content_size(s_date_layer);
-	layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_date_layer, GColorClear);
 	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
 	//text_layer_set_text(s_date_layer, "THU OCT 15");
 	
+	update_time();
+	
+	GSize time_size = text_layer_get_content_size(s_time_layer);
+	layer_set_frame(text_layer_get_layer(s_time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, time_size.h));
+	GRect time_frame = layer_get_frame(text_layer_get_layer(s_time_layer));
+	
+	GSize date_size = text_layer_get_content_size(s_date_layer);
+	layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
+	GRect date_frame = layer_get_frame(text_layer_get_layer(s_date_layer));
+	
 	// Charging status
-	s_charge_layer = text_layer_create(GRect(0, 114, bounds.size.w, bounds.size.h));
+	s_charge_layer = text_layer_create(GRect(0, (date_frame.origin.y + date_size.h), bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_charge_layer, GColorClear);
 	text_layer_set_font(s_charge_layer, s_weather_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
@@ -546,7 +548,7 @@ static void main_window_load(Window *window) {
 	layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
 
 	// Bluetooth status
-	s_bluetooth_layer = text_layer_create(GRect(0, 37, bounds.size.w, bounds.size.h));
+	s_bluetooth_layer = text_layer_create(GRect(0, time_frame.origin.y - 3, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_bluetooth_layer, GColorClear);
 	text_layer_set_font(s_bluetooth_layer, s_weather_font);
 	text_layer_set_text_alignment(s_bluetooth_layer, GTextAlignmentCenter);
@@ -688,7 +690,6 @@ static void main_window_load(Window *window) {
  	}
 
   	charge_handler(); // Is the battery charging?
-	update_time();
 }
 
 static void main_window_unload(Window *window) {
