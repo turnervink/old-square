@@ -31,6 +31,7 @@ static bool vibe_on_connect = 1;
 static bool reflect_batt = 1;
 static bool euro_date = 0;
 
+static int conditions_height;
 
 static int lang; // User selected language code
 //static int lang = 0; // Hardcoded for testing
@@ -106,10 +107,11 @@ static void init_animations() {
 
 static void animate_layers() {
 	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+	GSize cond_size = text_layer_get_content_size(s_conditions_layer);
 
 	// Weather moves in from bottom
-	GRect wins = GRect(0, 182, bounds.size.w, 14);
-	GRect winf = GRect(0, PBL_IF_ROUND_ELSE(147, 150), bounds.size.w, 14);
+	GRect wins = GRect(0, 182, bounds.size.w, cond_size.h);
+	GRect winf = GRect(0, bounds.size.h - cond_size.h, bounds.size.w, 14);
 	animate_layer(text_layer_get_layer(s_conditions_layer), &wins, &winf, 1000, 0);
 
 	GRect wouts = GRect(0, PBL_IF_ROUND_ELSE(147, 150), bounds.size.w, 14);
@@ -442,11 +444,22 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   }
 
   if (conditions_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
+		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
 
-  	snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_t->value->cstring);
-  	text_layer_set_text(s_conditions_layer, conditions_buffer);
-  	text_layer_set_text(s_conditions_layer_unanimated, conditions_buffer);
+		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_t->value->cstring);
+		text_layer_set_text(s_conditions_layer, conditions_buffer);
+		text_layer_set_text(s_conditions_layer_unanimated, conditions_buffer);
+
+		GSize cond_size = text_layer_get_content_size(s_conditions_layer);
+		GSize conds_size = text_layer_get_content_size(s_conditions_layer_unanimated);
+		GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+
+		layer_set_frame(text_layer_get_layer(s_conditions_layer), GRect(0, 182, bounds.size.w, cond_size.h)); 
+		layer_set_frame(text_layer_get_layer(s_conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(147, 150), bounds.size.w, conds_size.h));
+		
+		GRect cond = layer_get_frame(text_layer_get_layer(s_conditions_layer));
+		GRect conds = layer_get_frame(text_layer_get_layer(s_conditions_layer_unanimated));
+	
   }
 
   if (vibe_on_connect_t) {
