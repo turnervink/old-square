@@ -111,10 +111,10 @@ static void animate_layers() {
 
 	// Weather moves in from bottom
 	GRect wins = GRect(0, 182, bounds.size.w, cond_size.h);
-	GRect winf = GRect(0, bounds.size.h - cond_size.h, bounds.size.w, 14);
+	GRect winf = GRect(0, (bounds.size.h - cond_size.h) - 5, bounds.size.w, cond_size.h);
 	animate_layer(text_layer_get_layer(s_conditions_layer), &wins, &winf, 1000, 0);
 
-	GRect wouts = GRect(0, PBL_IF_ROUND_ELSE(147, 150), bounds.size.w, 14);
+	GRect wouts = GRect(0, (bounds.size.h - cond_size.h) - 5, bounds.size.w, cond_size.h);
 	GRect woutf = GRect(0, 182, bounds.size.w, 14);
 	animate_layer(text_layer_get_layer(s_conditions_layer), &wouts, &woutf, 1000, 5000);
 
@@ -577,6 +577,7 @@ static void main_window_load(Window *window) {
 
 	// Conditions
 	s_conditions_layer = text_layer_create(GRect(0, 182, bounds.size.w, 14));
+	text_layer_set_overflow_mode(s_conditions_layer, GTextOverflowModeWordWrap);
 	text_layer_set_font(s_conditions_layer, s_weather_font);
 	text_layer_set_background_color(s_conditions_layer, GColorClear);
 	text_layer_set_text_alignment(s_conditions_layer, GTextAlignmentCenter);
