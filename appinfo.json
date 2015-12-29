@@ -8,6 +8,7 @@
         "dateFormat": 13,
         "invertColors": 1,
         "langSel": 14,
+        "largeFont": 16,
         "reflectBatt": 12,
         "shakeWeather": 5,
         "showBluetooth": 11,
@@ -18,8 +19,8 @@
         "vibeDisconnect": 9
     },
     "capabilities": [
-        "configurable",
-        "location"
+        "location",
+        "configurable"
     ],
     "companyName": "Turner Vink",
     "longName": "Square",
@@ -28,17 +29,26 @@
         "media": [
             {
                 "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_14",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
                 "name": "FONT_SQUARE_26",
+                "targetPlatforms": null,
                 "type": "font"
             },
             {
                 "file": "fonts/square.ttf",
                 "name": "FONT_SQUARE_50",
+                "targetPlatforms": null,
                 "type": "font"
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_14",
+                "name": "FONT_SQUARE_18",
+                "targetPlatforms": null,
                 "type": "font"
             }
         ]
@@ -51,7 +61,7 @@
         "chalk"
     ],
     "uuid": "cb332373-4ee5-4c5c-8912-4f62af2d756c",
-    "versionLabel": "4.0",
+    "versionLabel": "4.3",
     "watchapp": {
         "watchface": true
     }

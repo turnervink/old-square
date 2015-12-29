@@ -100,7 +100,7 @@ Pebble.addEventListener('appmessage',
 // ========== CONFIGURATION ========== //
 
 Pebble.addEventListener('showConfiguration', function() {
-  var url = 'http://7658488.ngrok.com';
+  var url = 'http://turnervink.github.io/square-config/';
 
   console.log('Showing configuration page: ' + url);
 
@@ -113,7 +113,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
   console.log('Configuration page returned: ' + JSON.stringify(configData));
   console.log('Background color is ' + parseInt(configData.textColor, 16));
 
-  if (configData.textColor) { // If we have received the correct data (not sure why we wouldn't, but who knows?)
+  if (configData.useCelsius) { // If we have received the correct data (not sure why we wouldn't, but who knows?)
     // Send all keys to Pebble
     Pebble.sendAppMessage({
       textColor: parseInt(configData.textColor, 16),
@@ -126,7 +126,8 @@ Pebble.addEventListener('webviewclosed', function(e) {
       vibeConnect: configData.vibeConnect ? 1 : 0,
       reflectBatt: configData.reflectBatt ? 1 : 0,
       dateFormat: configData.dateFormat,
-      langSel: configData.langSel
+      langSel: configData.langSel,
+			largeFont: configData.largeFont ? 1 : 0
     }, function() {
       console.log('Send successful!');
     }, function() {

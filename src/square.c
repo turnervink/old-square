@@ -16,10 +16,11 @@
 #define KEY_DATE_FORMAT 13
 #define KEY_LANGUAGE 14
 #define KEY_READY 15
+#define KEY_LARGE_FONT 16
 	
 static Window *s_main_window;
 static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
-static GFont s_time_font, s_date_font, s_weather_font;
+static GFont s_time_font, s_date_font, s_weather_font, s_bt_font;
 static Layer *s_batt_layer, *s_static_layer, *s_weather_layer, *s_weather_layer_unanimated;
 static bool ready = 0;
 static bool invert_colors = 0;
@@ -30,6 +31,8 @@ static bool vibe_on_disconnect = 1;
 static bool vibe_on_connect = 1;
 static bool reflect_batt = 1;
 static bool euro_date = 0;
+static bool large_font = 0;
+static bool picked_font = 0;
 
 static int lang; // User selected language code
 //static int lang = 0; // Hardcoded for testing
@@ -345,6 +348,7 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT);
   Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT);
   Tuple *lang_t = dict_find(iter, KEY_LANGUAGE);
+	Tuple *largefont_t = dict_find(iter, KEY_LARGE_FONT);
 
   if (ready_t) { // Wait for JS to be ready before requesting weather in selected language
   	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
@@ -476,9 +480,19 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   }
 
   if (use_celsius == 1) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Using Celsius and getting temp size");
   	text_layer_set_text(s_temp_layer, temp_c_buffer);
   	text_layer_set_text(s_temp_layer_unanimated, temp_c_buffer);
+		
+		/*GSize temp_size = text_layer_get_content_size(s_temp_layer);
+		GSize temps_size = text_layer_get_content_size(s_temp_layer_unanimated);
+		GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+		APP_LOG(APP_LOG_LEVEL_INFO, "Temp size is %d", temp_size.h);
+		
+		layer_set_frame(text_layer_get_layer(s_temp_layer), GRect(0, -32, bounds.size.w, 18));
+		layer_set_frame(text_layer_get_layer(s_temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w,  18));*/
   } else {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Using Fahrenheit and getting temp size");
   	text_layer_set_text(s_temp_layer, temp_buffer);
   	text_layer_set_text(s_temp_layer_unanimated, temp_buffer);
   }
@@ -504,6 +518,29 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
   		persist_write_int(KEY_DATE_FORMAT, euro_date);
   	}
   }
+	
+	if (largefont_t) {
+		large_font = largefont_t->value->int8;
+		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LARGE_FONT received! - %d", large_font);
+		
+		persist_write_int(KEY_LARGE_FONT, large_font);
+		
+		if (large_font == 1) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
+			text_layer_set_font(s_conditions_layer, s_weather_font);
+			text_layer_set_font(s_temp_layer, s_weather_font);
+			text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
+			text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
+		} else {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
+			text_layer_set_font(s_conditions_layer, s_bt_font);
+			text_layer_set_font(s_temp_layer, s_bt_font);
+			text_layer_set_font(s_conditions_layer_unanimated, s_bt_font);
+			text_layer_set_font(s_temp_layer_unanimated, s_bt_font);
+		}
+
+			layer_mark_dirty(text_layer_get_layer(s_conditions_layer));
+		}
 
   update_layers();
   update_time();
@@ -513,9 +550,15 @@ static void main_window_load(Window *window) {
 	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
 
 	// Create fonts
+	if (persist_exists(KEY_LARGE_FONT)) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LARGE_FONT exists!");
+		large_font = persist_read_int(KEY_LARGE_FONT);
+	}
+
+	s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_18));
 	s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_50));
 	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_26));
-	s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_14));
+	s_bt_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_14));
 
 	// Weather parent layers
 	s_weather_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
@@ -558,7 +601,7 @@ static void main_window_load(Window *window) {
 	// Charging status
 	s_charge_layer = text_layer_create(GRect(0, (date_frame.origin.y + date_size.h), bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_charge_layer, GColorClear);
-	text_layer_set_font(s_charge_layer, s_weather_font);
+	text_layer_set_font(s_charge_layer, s_bt_font);
 	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
 	text_layer_set_text(s_charge_layer, "CHRG");
 	layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
@@ -566,36 +609,47 @@ static void main_window_load(Window *window) {
 	// Bluetooth status
 	s_bluetooth_layer = text_layer_create(GRect(0, time_frame.origin.y - 3, bounds.size.w, bounds.size.h));
 	text_layer_set_background_color(s_bluetooth_layer, GColorClear);
-	text_layer_set_font(s_bluetooth_layer, s_weather_font);
+	text_layer_set_font(s_bluetooth_layer, s_bt_font);
 	text_layer_set_text_alignment(s_bluetooth_layer, GTextAlignmentCenter);
 	text_layer_set_text(s_bluetooth_layer, "BT");
 
 	// ========== WEATHER LAYERS ========== //
 
 	// Temperature
-	s_temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 14));
+	s_temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 18));
 	text_layer_set_background_color(s_temp_layer, GColorClear);
-	text_layer_set_font(s_temp_layer, s_weather_font);
 	text_layer_set_text_alignment(s_temp_layer, GTextAlignmentCenter);
 
 	// Conditions
 	s_conditions_layer = text_layer_create(GRect(0, 182, bounds.size.w, 14));
 	text_layer_set_overflow_mode(s_conditions_layer, GTextOverflowModeWordWrap);
-	text_layer_set_font(s_conditions_layer, s_weather_font);
 	text_layer_set_background_color(s_conditions_layer, GColorClear);
 	text_layer_set_text_alignment(s_conditions_layer, GTextAlignmentCenter);
 
 	// Temperature unanimated
-	s_temp_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 14));
+	s_temp_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 18));
 	text_layer_set_background_color(s_temp_layer_unanimated, GColorClear);
-	text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
 	text_layer_set_text_alignment(s_temp_layer_unanimated, GTextAlignmentCenter);
 
 	// Conditions unanimated
 	s_conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 40, 150), bounds.size.w, 14));
-	text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
+	text_layer_set_overflow_mode(s_conditions_layer_unanimated, GTextOverflowModeWordWrap);
 	text_layer_set_background_color(s_conditions_layer_unanimated, GColorClear);
 	text_layer_set_text_alignment(s_conditions_layer_unanimated, GTextAlignmentCenter);
+	
+	if (large_font == 1) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
+		text_layer_set_font(s_conditions_layer, s_weather_font);
+		text_layer_set_font(s_temp_layer, s_weather_font);
+		text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
+		text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
+	} else {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
+		text_layer_set_font(s_conditions_layer, s_bt_font);
+		text_layer_set_font(s_temp_layer, s_bt_font);
+		text_layer_set_font(s_conditions_layer_unanimated, s_bt_font);
+		text_layer_set_font(s_temp_layer_unanimated, s_bt_font);
+	}
 	
 	// ========== ADD CHILDREN ========== //
 
@@ -784,9 +838,8 @@ static void init() {
 	bluetooth_connection_service_subscribe(bluetooth_handler);
 
 	app_message_register_inbox_received(inbox_received_handler);
-  	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-
-  	//init_animations();
+	APP_LOG(APP_LOG_LEVEL_INFO, "Opening app message inbox");
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 }
 
 static void deinit() {
