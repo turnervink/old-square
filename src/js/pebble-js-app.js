@@ -46,9 +46,11 @@ function locationSuccess(pos) {
       Pebble.sendAppMessage(dictionary,
         function(e) {
           console.log("Weather info sent to Pebble successfully!");
+					console.log(e);
         },
         function(e) {
           console.log("Error sending weather info to Pebble!");
+					console.log(e);
         }
       );
     }      
@@ -70,9 +72,15 @@ function getWeather() {
 Pebble.addEventListener('ready', function() {
   console.log('PebbleKit JS Ready!');
 
-  getWeather(); // Get weather
-
-  Pebble.sendAppMessage({'15': 'ready'}); // Signal watch that JS is ready
+  Pebble.sendAppMessage({'15': 'ready'
+	}, function(e) {
+      console.log('Sent ready message');
+		console.log(e);
+  }, function(e) {
+      console.log('Failed to send ready message');
+			console.log(e);
+  });
+												// Signal watch that JS is ready
 });
 
 Pebble.addEventListener('appmessage',
@@ -113,8 +121,9 @@ Pebble.addEventListener('webviewclosed', function(e) {
   console.log('Configuration page returned: ' + JSON.stringify(configData));
   console.log('Background color is ' + parseInt(configData.textColor, 16));
 
-  if (configData.useCelsius) { // If we have received the correct data (not sure why we wouldn't, but who knows?)
+  if (configData.textColor) { // If we have received the correct data (not sure why we wouldn't, but who knows?)
     // Send all keys to Pebble
+		console.log("Sending config dict");
     Pebble.sendAppMessage({
       textColor: parseInt(configData.textColor, 16),
       backgroundColor: parseInt(configData.backgroundColor, 16),
@@ -128,10 +137,12 @@ Pebble.addEventListener('webviewclosed', function(e) {
       dateFormat: configData.dateFormat,
       langSel: configData.langSel,
 			largeFont: configData.largeFont ? 1 : 0
-    }, function() {
+    }, function(e) {
       console.log('Send successful!');
-    }, function() {
+			console.log(e);
+    }, function(e) {
       console.log('Send failed!');
+			console.log(e);
     });
   }
 });

@@ -327,28 +327,49 @@ static void sendLang(char* lang) { // Send selected language to JS to fetch weat
 	app_message_outbox_send();
 }
 
-static void inbox_received_handler(DictionaryIterator *iter, void *context) {
+char *translate_error(AppMessageResult result) {
+  switch (result) {
+    case APP_MSG_OK: return "APP_MSG_OK";
+    case APP_MSG_SEND_TIMEOUT: return "APP_MSG_SEND_TIMEOUT";
+    case APP_MSG_SEND_REJECTED: return "APP_MSG_SEND_REJECTED";
+    case APP_MSG_NOT_CONNECTED: return "APP_MSG_NOT_CONNECTED";
+    case APP_MSG_APP_NOT_RUNNING: return "APP_MSG_APP_NOT_RUNNING";
+    case APP_MSG_INVALID_ARGS: return "APP_MSG_INVALID_ARGS";
+    case APP_MSG_BUSY: return "APP_MSG_BUSY";
+    case APP_MSG_BUFFER_OVERFLOW: return "APP_MSG_BUFFER_OVERFLOW";
+    case APP_MSG_ALREADY_RELEASED: return "APP_MSG_ALREADY_RELEASED";
+    case APP_MSG_CALLBACK_ALREADY_REGISTERED: return "APP_MSG_CALLBACK_ALREADY_REGISTERED";
+    case APP_MSG_CALLBACK_NOT_REGISTERED: return "APP_MSG_CALLBACK_NOT_REGISTERED";
+    case APP_MSG_OUT_OF_MEMORY: return "APP_MSG_OUT_OF_MEMORY";
+    case APP_MSG_CLOSED: return "APP_MSG_CLOSED";
+    case APP_MSG_INTERNAL_ERROR: return "APP_MSG_INTERNAL_ERROR";
+    default: return "UNKNOWN ERROR";
+  }
+}
+
+static void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   static char temp_buffer[15];
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
 
-  Tuple *ready_t = dict_find(iter, KEY_READY);
+  Tuple *ready_t = dict_find(iter, KEY_READY); // cstring
 
-  Tuple *text_color_t = dict_find(iter, KEY_TEXT_COLOR);
-  Tuple *invert_colors_t = dict_find(iter, KEY_INVERT_COLORS);
-  Tuple *temperature_t = dict_find(iter, KEY_TEMPERATURE);
-  Tuple *temperature_in_c_t = dict_find(iter, KEY_TEMPERATURE_IN_C);
-  Tuple *conditions_t = dict_find(iter, KEY_CONDITIONS);
-  Tuple *shake_for_weather_t = dict_find(iter, KEY_SHAKE_FOR_WEATHER);
-  Tuple *show_weather_t = dict_find(iter, KEY_SHOW_WEATHER);
-  Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS);
-  Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR);
-  Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT);
-  Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT);
-  Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT);
-  Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT);
-  Tuple *lang_t = dict_find(iter, KEY_LANGUAGE);
-	Tuple *largefont_t = dict_find(iter, KEY_LARGE_FONT);
+  Tuple *text_color_t = dict_find(iter, KEY_TEXT_COLOR); // int32
+  Tuple *invert_colors_t = dict_find(iter, KEY_INVERT_COLORS); // int8
+  Tuple *temperature_t = dict_find(iter, KEY_TEMPERATURE); // int32
+  Tuple *temperature_in_c_t = dict_find(iter, KEY_TEMPERATURE_IN_C); // int32
+  Tuple *conditions_t = dict_find(iter, KEY_CONDITIONS); // cstring
+  Tuple *shake_for_weather_t = dict_find(iter, KEY_SHAKE_FOR_WEATHER); // int8
+  Tuple *show_weather_t = dict_find(iter, KEY_SHOW_WEATHER); // int8
+  Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS); // int8
+  Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR); // int32
+  Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT); // int8
+  Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT); // int8
+  Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT); // int8
+  Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT); // cstring
+  Tuple *lang_t = dict_find(iter, KEY_LANGUAGE); // cstring
+	Tuple *largefont_t = dict_find(iter, KEY_LARGE_FONT); // int8
+	
 
   if (ready_t) { // Wait for JS to be ready before requesting weather in selected language
   	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
@@ -544,6 +565,20 @@ static void inbox_received_handler(DictionaryIterator *iter, void *context) {
 
   update_layers();
   update_time();
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "In dropped: %i - %s", reason, translate_error(reason));
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "In outbox failed: %i - %s", reason, translate_error(reason));
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
 static void main_window_load(Window *window) {
@@ -838,8 +873,20 @@ static void init() {
 	bluetooth_connection_service_subscribe(bluetooth_handler);
 
 	app_message_register_inbox_received(inbox_received_handler);
+	app_message_register_inbox_dropped(inbox_dropped_callback);
+	app_message_register_outbox_failed(outbox_failed_callback);
+	app_message_register_outbox_sent(outbox_sent_callback);
 	APP_LOG(APP_LOG_LEVEL_INFO, "Opening app message inbox");
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+	
+	
+	int size_buffer_in = dict_calc_buffer_size(16, sizeof(char), sizeof(int32_t), sizeof(int8_t), sizeof(int32_t), sizeof(int32_t), sizeof(char), 
+	sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(int32_t), sizeof(int8_t), 
+	sizeof(int8_t), sizeof(int8_t), sizeof(char), sizeof(char), sizeof(int8_t));
+		
+	int size_buffer_out = dict_calc_buffer_size(3, sizeof(int8_t), sizeof(int8_t), sizeof(char));
+	
+  app_message_open(size_buffer_in, size_buffer_out);
+	//app_message_open(8000, 8000);
 }
 
 static void deinit() {
