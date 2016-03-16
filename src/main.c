@@ -1,40 +1,28 @@
 #include <pebble.h>
 #include "languages.h"
-
-#define KEY_TEXT_COLOR 0
-#define KEY_INVERT_COLORS 1
-#define KEY_TEMPERATURE 2
-#define KEY_TEMPERATURE_IN_C 3
-#define KEY_CONDITIONS 4
-#define KEY_SHAKE_FOR_WEATHER 5
-#define KEY_USE_CELSIUS 6
-#define KEY_BACKGROUND_COLOR 7
-#define KEY_SHOW_WEATHER 8
-#define KEY_VIBE_ON_DISCONNECT 9
-#define KEY_VIBE_ON_CONNECT 10
-#define KEY_REFLECT_BATT 12
-#define KEY_DATE_FORMAT 13
-#define KEY_LANGUAGE 14
-#define KEY_READY 15
-#define KEY_LARGE_FONT 16
+#include "main.h"
 	
-static Window *s_main_window;
-static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer, *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
-static GFont s_time_font, s_date_font, s_weather_font, s_bt_font;
+Window *s_main_window;
+static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer;
+TextLayer *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
+static GFont s_time_font, s_date_font;
+GFont s_weather_font, s_bt_font;
 static Layer *s_batt_layer, *s_static_layer, *s_weather_layer, *s_weather_layer_unanimated;
-static bool ready = 0;
-static bool invert_colors = 0;
-static bool use_celsius = 0;
-static bool shake_for_weather = 1;
-static bool show_weather = 1;
-static bool vibe_on_disconnect = 1;
-static bool vibe_on_connect = 1;
-static bool reflect_batt = 1;
-static bool euro_date = 0;
-static bool large_font = 0;
-static bool picked_font = 0;
 
-static int lang; // User selected language code
+// Config options
+bool ready = 0;
+bool invert_colors = 0;
+bool use_celsius = 0;
+bool shake_for_weather = 1;
+bool show_weather = 1;
+bool vibe_on_disconnect = 1;
+bool vibe_on_connect = 1;
+bool reflect_batt = 1;
+bool euro_date = 0;
+bool large_font = 0;
+bool picked_font = 0;
+
+int lang; // User selected language code
 //static int lang = 0; // Hardcoded for testing
 
 /*
@@ -136,7 +124,7 @@ static void animate_layers() {
 	animate_layer(text_layer_get_layer(s_temp_layer), &touts, &toutf, 1000, 5000);
 }
 
-static void update_time() {
+void update_time() {
   time_t temp = time(NULL);
   struct tm *tick_time = localtime(&temp);
 	
@@ -246,7 +234,7 @@ static void static_layer_draw(Layer *layer, GContext *ctx) {
 	graphics_fill_rect(ctx, GRect(PBL_IF_ROUND_ELSE(20, 2), (bounds.size.h / 2) + 8, 140, 2), 0, GCornerNone); // Draw static bar
 }
 
-static void update_layers() {
+void update_layers() {
 	if (show_weather == 0) {
 		layer_set_hidden(s_weather_layer, true);
 		layer_set_hidden(s_weather_layer_unanimated, true);
@@ -269,7 +257,7 @@ static void update_layers() {
   	}
 }
 
-static void set_text_color(int color) {
+void set_text_color(int color) {
   #ifdef PBL_COLOR
 		GColor text_color = GColorFromHEX(color);
 		text_layer_set_text_color(s_time_layer, text_color);
@@ -283,14 +271,14 @@ static void set_text_color(int color) {
   #endif
 }
 
-static void set_background_color(int bgcolor) {
+void set_background_color(int bgcolor) {
 	#ifdef PBL_COLOR
 		GColor bg_color = GColorFromHEX(bgcolor);
 		window_set_background_color(s_main_window, bg_color);
   	#endif
 }
 
-static void inverter() {
+void inverter() {
 	if (invert_colors == 1) {
 	    	window_set_background_color(s_main_window, GColorWhite);
 			text_layer_set_text_color(s_time_layer, GColorBlack);
@@ -312,273 +300,6 @@ static void inverter() {
 			text_layer_set_text_color(s_charge_layer, GColorWhite);
 			text_layer_set_text_color(s_bluetooth_layer, GColorWhite);
 	    }
-}
-
-static void sendLang(char* lang) { // Send selected language to JS to fetch weather
-	APP_LOG(APP_LOG_LEVEL_INFO, "Sending lang to JS - %s", lang);
-	// Begin dictionary
-	DictionaryIterator *iter;
-	app_message_outbox_begin(&iter);
-
-	// Add a key-value pair
-	dict_write_cstring(iter, 14, lang); // Key 14 is KEY_LANGUAGE
-
-	// Send the message!
-	app_message_outbox_send();
-}
-
-char *translate_error(AppMessageResult result) {
-  switch (result) {
-    case APP_MSG_OK: return "APP_MSG_OK";
-    case APP_MSG_SEND_TIMEOUT: return "APP_MSG_SEND_TIMEOUT";
-    case APP_MSG_SEND_REJECTED: return "APP_MSG_SEND_REJECTED";
-    case APP_MSG_NOT_CONNECTED: return "APP_MSG_NOT_CONNECTED";
-    case APP_MSG_APP_NOT_RUNNING: return "APP_MSG_APP_NOT_RUNNING";
-    case APP_MSG_INVALID_ARGS: return "APP_MSG_INVALID_ARGS";
-    case APP_MSG_BUSY: return "APP_MSG_BUSY";
-    case APP_MSG_BUFFER_OVERFLOW: return "APP_MSG_BUFFER_OVERFLOW";
-    case APP_MSG_ALREADY_RELEASED: return "APP_MSG_ALREADY_RELEASED";
-    case APP_MSG_CALLBACK_ALREADY_REGISTERED: return "APP_MSG_CALLBACK_ALREADY_REGISTERED";
-    case APP_MSG_CALLBACK_NOT_REGISTERED: return "APP_MSG_CALLBACK_NOT_REGISTERED";
-    case APP_MSG_OUT_OF_MEMORY: return "APP_MSG_OUT_OF_MEMORY";
-    case APP_MSG_CLOSED: return "APP_MSG_CLOSED";
-    case APP_MSG_INTERNAL_ERROR: return "APP_MSG_INTERNAL_ERROR";
-    default: return "UNKNOWN ERROR";
-  }
-}
-
-static void inbox_received_handler(DictionaryIterator *iter, void *contex) {
-  static char temp_buffer[15];
-  static char temp_c_buffer[15];
-  static char conditions_buffer[100];
-
-  Tuple *ready_t = dict_find(iter, KEY_READY); // cstring
-
-  Tuple *text_color_t = dict_find(iter, KEY_TEXT_COLOR); // int32
-  Tuple *invert_colors_t = dict_find(iter, KEY_INVERT_COLORS); // int8
-  Tuple *temperature_t = dict_find(iter, KEY_TEMPERATURE); // int32
-  Tuple *temperature_in_c_t = dict_find(iter, KEY_TEMPERATURE_IN_C); // int32
-  Tuple *conditions_t = dict_find(iter, KEY_CONDITIONS); // cstring
-  Tuple *shake_for_weather_t = dict_find(iter, KEY_SHAKE_FOR_WEATHER); // int8
-  Tuple *show_weather_t = dict_find(iter, KEY_SHOW_WEATHER); // int8
-  Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS); // int8
-  Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR); // int32
-  Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT); // int8
-  Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT); // int8
-  Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT); // int8
-  Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT); // cstring
-  Tuple *lang_t = dict_find(iter, KEY_LANGUAGE); // cstring
-	Tuple *largefont_t = dict_find(iter, KEY_LARGE_FONT); // int8
-	
-
-  if (ready_t) { // Wait for JS to be ready before requesting weather in selected language
-  	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
-  	ready = 1;
-
-  	sendLang(langCodes[lang]);
-  }
-
-  if (lang_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	if (strcmp(lang_t->value->cstring, "en") == 0) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
-  		lang = 0;
-  	} else if (strcmp(lang_t->value->cstring, "fr") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
-  		lang = 1;
-  	} else if (strcmp(lang_t->value->cstring, "es") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
-  		lang = 2;
-  	} else if (strcmp(lang_t->value->cstring, "de") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
-  		lang = 3;
-  	} else {
-  		lang = 0;
-  	}
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	sendLang(lang_t->value->cstring);
-
-  	persist_write_int(KEY_LANGUAGE, lang);
-  }
-
-  if (text_color_t) {
-    int text_color = text_color_t->value->int32;
-    APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR received!");
-
-    persist_write_int(KEY_TEXT_COLOR, text_color);
-    #ifdef PBL_COLOR
-    	set_text_color(text_color);
-    #else
-
-    #endif
-  }
-
-  if (background_color_t) {
-  	int bg_color = background_color_t->value->int32;
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR received! - %d", bg_color);
-
-  	persist_write_int(KEY_BACKGROUND_COLOR, bg_color);
-  	#ifdef PBL_COLOR
-    	set_background_color(bg_color);
-    #else
-
-    #endif
-  }
-
-  if (invert_colors_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS received!");
-    invert_colors = invert_colors_t->value->int8;
-
-
-    persist_write_int(KEY_INVERT_COLORS, invert_colors);
-
-    #ifdef PBL_BW
-    	inverter();
-    #endif
-  }
-
-  if (use_celsius_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_USE_CELSIUS received!");
-
-  	use_celsius = use_celsius_t->value->int8;
-
-  	persist_write_int(KEY_USE_CELSIUS, use_celsius);
-  }
-
-  if (shake_for_weather_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHAKE_FOR_WEATHER received!");
-
-  	shake_for_weather = shake_for_weather_t->value->int8;
-
-  	persist_write_int(KEY_SHAKE_FOR_WEATHER, shake_for_weather);
-  }
-
-  if (show_weather_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
-
-  	show_weather = show_weather_t->value->int8;
-
-  	persist_write_int(KEY_SHOW_WEATHER, show_weather);
-  }
-
-  if (temperature_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE received!");
-
-  	snprintf(temp_buffer, sizeof(temp_buffer), "%d°", (int)temperature_t->value->int32);
-  }
-
-  if (temperature_in_c_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE_IN_C received!");
-
-  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d°", (int)temperature_in_c_t->value->int32);
-  }
-
-  if (conditions_t) {
-		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
-
-		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_t->value->cstring);
-		text_layer_set_text(s_conditions_layer, conditions_buffer);
-		text_layer_set_text(s_conditions_layer_unanimated, conditions_buffer);
-		//text_layer_set_text(s_conditions_layer, "This is some placeholder text");
-		//text_layer_set_text(s_conditions_layer_unanimated, "This is some placeholder text");
-
-		GSize cond_size = text_layer_get_content_size(s_conditions_layer);
-		GSize conds_size = text_layer_get_content_size(s_conditions_layer_unanimated);
-		GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
-
-		layer_set_frame(text_layer_get_layer(s_conditions_layer), GRect(0, 182, bounds.size.w, cond_size.h)); 
-		layer_set_frame(text_layer_get_layer(s_conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
-  }
-
-  if (vibe_on_connect_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_CONNECT received!");
-  	vibe_on_connect = vibe_on_connect_t->value->int8;
-  }
-
-  if (vibe_on_disconnect_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_DISCONNECT received!");
-  	vibe_on_disconnect = vibe_on_disconnect_t->value->int8;
-  }
-
-  if (use_celsius == 1) {
-		APP_LOG(APP_LOG_LEVEL_INFO, "Using Celsius and getting temp size");
-  	text_layer_set_text(s_temp_layer, temp_c_buffer);
-  	text_layer_set_text(s_temp_layer_unanimated, temp_c_buffer);
-		
-		/*GSize temp_size = text_layer_get_content_size(s_temp_layer);
-		GSize temps_size = text_layer_get_content_size(s_temp_layer_unanimated);
-		GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
-		APP_LOG(APP_LOG_LEVEL_INFO, "Temp size is %d", temp_size.h);
-		
-		layer_set_frame(text_layer_get_layer(s_temp_layer), GRect(0, -32, bounds.size.w, 18));
-		layer_set_frame(text_layer_get_layer(s_temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w,  18));*/
-  } else {
-		APP_LOG(APP_LOG_LEVEL_INFO, "Using Fahrenheit and getting temp size");
-  	text_layer_set_text(s_temp_layer, temp_buffer);
-  	text_layer_set_text(s_temp_layer_unanimated, temp_buffer);
-  }
-
-  if (reflect_batt_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT received!");
-
-  	reflect_batt = reflect_batt_t->value->int8;
-
-  	persist_write_int(KEY_REFLECT_BATT, reflect_batt);
-  }
-
-  if (date_format_t) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_DATE_FORMAT received!");
-
-  	if (strcmp(date_format_t->value->cstring, "edate") == 0) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using european date");
-  		euro_date = 1;
-  		persist_write_int(KEY_DATE_FORMAT, euro_date);
-  	} else {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using standard date");
-  		euro_date = 0;
-  		persist_write_int(KEY_DATE_FORMAT, euro_date);
-  	}
-  }
-	
-	if (largefont_t) {
-		large_font = largefont_t->value->int8;
-		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LARGE_FONT received! - %d", large_font);
-		
-		persist_write_int(KEY_LARGE_FONT, large_font);
-		
-		if (large_font == 1) {
-			APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
-			text_layer_set_font(s_conditions_layer, s_weather_font);
-			text_layer_set_font(s_temp_layer, s_weather_font);
-			text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
-			text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
-		} else {
-			APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
-			text_layer_set_font(s_conditions_layer, s_bt_font);
-			text_layer_set_font(s_temp_layer, s_bt_font);
-			text_layer_set_font(s_conditions_layer_unanimated, s_bt_font);
-			text_layer_set_font(s_temp_layer_unanimated, s_bt_font);
-		}
-
-			layer_mark_dirty(text_layer_get_layer(s_conditions_layer));
-		}
-
-  update_layers();
-  update_time();
-}
-
-static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "In dropped: %i - %s", reason, translate_error(reason));
-}
-
-static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "In outbox failed: %i - %s", reason, translate_error(reason));
-}
-
-static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
 static void main_window_load(Window *window) {
@@ -872,21 +593,9 @@ static void init() {
 	accel_tap_service_subscribe(tap_handler);
 	bluetooth_connection_service_subscribe(bluetooth_handler);
 
-	app_message_register_inbox_received(inbox_received_handler);
-	app_message_register_inbox_dropped(inbox_dropped_callback);
-	app_message_register_outbox_failed(outbox_failed_callback);
-	app_message_register_outbox_sent(outbox_sent_callback);
-	APP_LOG(APP_LOG_LEVEL_INFO, "Opening app message inbox");
 	
 	
-	int size_buffer_in = dict_calc_buffer_size(16, sizeof(char), sizeof(int32_t), sizeof(int8_t), sizeof(int32_t), sizeof(int32_t), sizeof(char), 
-	sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(int32_t), sizeof(int8_t), 
-	sizeof(int8_t), sizeof(int8_t), sizeof(char), sizeof(char), sizeof(int8_t));
-		
-	int size_buffer_out = dict_calc_buffer_size(3, sizeof(int8_t), sizeof(int8_t), sizeof(char));
-	
-  app_message_open(size_buffer_in, size_buffer_out);
-	//app_message_open(8000, 8000);
+	init_appmessage(); // Init appmessage in messaging.c
 }
 
 static void deinit() {
