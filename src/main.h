@@ -44,6 +44,7 @@ void outbox_sent_callback(DictionaryIterator *iterator, void *context);
 // Language settings
 void sendLang(char* lang);
 int lang;
+//static int lang = 0; // Hardcoded for testing
 
 // Color setting functions
 void set_text_color(int color);

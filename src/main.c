@@ -1,13 +1,18 @@
 #include <pebble.h>
 #include "languages.h"
 #include "main.h"
+#include "battery.h"
 	
 Window *s_main_window;
-static TextLayer *s_time_layer, *s_date_layer, *s_charge_layer, *s_bluetooth_layer;
-TextLayer *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
+
+static TextLayer *s_time_layer, *s_date_layer, *s_bluetooth_layer;
+TextLayer *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated, *s_charge_layer;
+
 static GFont s_time_font, s_date_font;
 GFont s_weather_font, s_bt_font;
-static Layer *s_batt_layer, *s_static_layer, *s_weather_layer, *s_weather_layer_unanimated;
+
+static Layer  *s_weather_layer, *s_weather_layer_unanimated;
+Layer *s_batt_layer, *s_static_layer;
 
 // Config options
 bool ready = 0;
@@ -23,17 +28,6 @@ bool large_font = 0;
 bool picked_font = 0;
 
 int lang; // User selected language code
-//static int lang = 0; // Hardcoded for testing
-
-/*
-LANGUAGE CODES
-
-english 0
-french 1
-spanish 2
-german 3
-
-*/
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -71,27 +65,6 @@ void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int 
  
     //Start animation!
     animation_schedule((Animation*) anim);
-}
-
-static void init_animations() {
-	GRect timestart = GRect(0, -60, 144, 168);
-	GRect timefinish = GRect(0, 40, 144, 168);
-
-	GRect datestart = GRect(0, 190, 144, 168);
-	GRect datefinish = GRect(0, 88, 144, 168);
-
-	GRect battstart = GRect(-140, 0, 144, 168);
-	GRect battfinish = GRect(0, 0, 144, 168);
-
-	GRect chargestart = GRect(0, 210, 144, 168);
-	GRect chargefinish = GRect(0, 110, 144, 168);
-
-	int animlen = 500;
-
-	animate_layer(text_layer_get_layer(s_time_layer), &timestart, &timefinish, animlen, 0);
-	animate_layer(text_layer_get_layer(s_date_layer), &datestart, &datefinish, animlen, 0);
-	animate_layer(text_layer_get_layer(s_charge_layer), &chargestart, &chargefinish, animlen, 0);
-	animate_layer(s_batt_layer, &battstart, &battfinish, animlen, 0);
 }
 
 static void animate_layers() {
@@ -152,86 +125,6 @@ void update_time() {
 	}
 
 	text_layer_set_text(s_date_layer, date_buffer); // Display the date info
-}
-
-static void charge_handler() {
-	BatteryChargeState state = battery_state_service_peek();
-	bool charging = state.is_charging;
-	
-	if (charging == true) {
-		layer_set_hidden(text_layer_get_layer(s_charge_layer), false);
-	} else {
-		layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
-	}
-}
-
-static void battery_handler(BatteryChargeState state) {
-	APP_LOG(APP_LOG_LEVEL_INFO, "Battery change registered!");
-	layer_mark_dirty(s_batt_layer);
-	charge_handler();
-}
-
-static void batt_layer_draw(Layer *layer, GContext *ctx) {	
-	BatteryChargeState state = battery_state_service_peek();
-	int pct = state.charge_percent;
-
-	#ifdef PBL_COLOR // If on basalt
-		if (persist_exists(KEY_TEXT_COLOR)) { // Check for existing colour
-			int text_color = persist_read_int(KEY_TEXT_COLOR);
-    		GColor fill_color = GColorFromHEX(text_color);
-			graphics_context_set_fill_color(ctx, fill_color); // Make the remaining battery that colour
-		} else {
-			graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
-		}
-	#else // If on aplite
-		if (persist_exists(KEY_INVERT_COLORS)) { // Check for invert setting
-			if (invert_colors == 1) {
-				graphics_context_set_fill_color(ctx, GColorBlack); // If inverted, make the remaining battery black
-			} else {
-				graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
-			}
-		} else {
-			graphics_context_set_fill_color(ctx, GColorWhite); // If no invert setting, default to white
-		}
-	#endif
-
-	//graphics_fill_rect(ctx, GRect(2, 92, 140-(((100-pct)/10)*14), 2), 0, GCornerNone); // Draw battery
-
-	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
-
-	/*
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), (140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), -(140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
-	*/
-
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2) + 8, ((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
-	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2) + 8, -((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
-}
-
-static void static_layer_draw(Layer *layer, GContext *ctx) {
-	#ifdef PBL_COLOR // If on basalt
-		if (persist_exists(KEY_TEXT_COLOR)) { // Check for existing colour
-			int text_color = persist_read_int(KEY_TEXT_COLOR);
-    		GColor fill_color = GColorFromHEX(text_color);
-			graphics_context_set_fill_color(ctx, fill_color); // Make the remaining battery that colour
-		} else {
-			graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
-		}
-	#else // If on aplite
-		if (persist_exists(KEY_INVERT_COLORS)) { // Check for invert setting
-			if (invert_colors == 1) {
-				graphics_context_set_fill_color(ctx, GColorBlack); // If inverted, make the remaining battery black
-			} else {
-				graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
-			}
-		} else {
-			graphics_context_set_fill_color(ctx, GColorWhite); // If no invert setting, default to white
-		}
-	#endif
-
-	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
-
-	graphics_fill_rect(ctx, GRect(PBL_IF_ROUND_ELSE(20, 2), (bounds.size.h / 2) + 8, 140, 2), 0, GCornerNone); // Draw static bar
 }
 
 void update_layers() {
@@ -535,7 +428,6 @@ static void main_window_unload(Window *window) {
 	fonts_unload_custom_font(s_date_font);
 	fonts_unload_custom_font(s_weather_font);
 }
-
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	update_time();
