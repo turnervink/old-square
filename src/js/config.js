@@ -6,9 +6,15 @@ module.exports = [
 			{
 				"type": "heading",
 				"id": "main-heading",
-				"defaultValue": "Square",
+				"defaultValue": "<h1 style='text-align:center'>Square</h1>",
 				"size": 1
-			}
+			},
+			{
+				"type": "heading",
+				"id": "dev-heading",
+				"defaultValue": "<p style='text-align:center;'>by Turner Vink<br> <a href='http://www.turnervink.com' style='color:#FF4500; text-decoration:none;'>www.turnervink.com</a></p>",
+				"size": 6
+			},
 		]
 	},
 	{
@@ -156,6 +162,22 @@ module.exports = [
 				"defaultValue": false
 			}
 		]
+	},
+	{
+		"type": "section",
+			"items": [
+				{
+					"type": "heading",
+					"id": "paypal-heading",
+					"defaultValue": "<h4 style='text-align:center;'>Before you tap save, consider donating a dollar or two through PayPal by tapping below.</h4>",
+					"size": 4
+				},
+				{
+					"type": "button",
+					"defaultValue": "Donate",
+					"id": "donateButton"
+				}
+			]
 	},
 	
 	{
