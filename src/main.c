@@ -464,8 +464,6 @@ static void init() {
 	battery_state_service_subscribe(battery_handler);
 	accel_tap_service_subscribe(tap_handler);
 	bluetooth_connection_service_subscribe(bluetooth_handler);
-
-	
 	
 	init_appmessage(); // Init appmessage in messaging.c
 }
