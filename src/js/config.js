@@ -167,15 +167,10 @@ module.exports = [
 		"type": "section",
 			"items": [
 				{
-					"type": "heading",
-					"id": "paypal-heading",
-					"defaultValue": "<h4 style='text-align:center;'>Before you tap save, consider donating a dollar or two through PayPal by tapping below.</h4>",
-					"size": 4
-				},
-				{
 					"type": "button",
 					"defaultValue": "Donate",
-					"id": "donateButton"
+					"id": "donateButton",
+					"description": "<p style='text-align:center;'>Before you tap save, consider donating a dollar or two through PayPal by tapping the button above.</p>"
 				}
 			]
 	},
