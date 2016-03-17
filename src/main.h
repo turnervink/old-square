@@ -60,3 +60,4 @@ GFont s_weather_font, s_bt_font;
 // Update functions
 void update_layers();
 void update_time();
+void update_weather();

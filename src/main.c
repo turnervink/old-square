@@ -34,20 +34,6 @@ void on_animation_stopped(Animation *anim, bool finished, void *context) {
     property_animation_destroy((PropertyAnimation*) anim);
 }
 
-static void bluetooth_handler(bool connected) {
-	if (!connected) {
-		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
-		if (vibe_on_disconnect == 1) {
-			vibes_long_pulse();
-		}
-	} else {
-		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
-		if (vibe_on_connect == 1) {
-			vibes_double_pulse();
-		}
-	}
-}
- 
 void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int delay) {
     //Declare animation
     PropertyAnimation *anim = property_animation_create_layer_frame(layer, start, finish);
@@ -95,6 +81,42 @@ static void animate_layers() {
 	GRect toutf = GRect(0, -32, bounds.size.w, temp_size.h);
 	
 	animate_layer(text_layer_get_layer(s_temp_layer), &touts, &toutf, 1000, 5000);
+}
+
+static void bluetooth_handler(bool connected) {
+	if (!connected) {
+		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
+		if (vibe_on_disconnect == 1) {
+			vibes_long_pulse();
+		}
+	} else {
+		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
+		if (vibe_on_connect == 1) {
+			vibes_double_pulse();
+		}
+	}
+}
+
+static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+	update_time();
+	if (show_weather == 1) {
+		// Update weather every 30 minutes
+		if(tick_time->tm_min % 30 == 0) {
+			update_weather();
+		}
+	}
+}
+
+static void tap_handler(AccelAxisType axis, int32_t direction) {
+	if (shake_for_weather == 1) {
+		if (shake_for_weather == 0) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Not animating.");
+			// Do not animate
+		} else {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Animating");
+			animate_layers();
+		}
+	}
 }
 
 void update_time() {
@@ -427,48 +449,6 @@ static void main_window_unload(Window *window) {
 	fonts_unload_custom_font(s_time_font);
 	fonts_unload_custom_font(s_date_font);
 	fonts_unload_custom_font(s_weather_font);
-}
-
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-	update_time();
-	if (show_weather == 1) {
-		// Update weather every 30 minutes
-		if(tick_time->tm_min % 30 == 0) {
-			// Begin dictionary
-			DictionaryIterator *iter;
-			app_message_outbox_begin(&iter);
-
-			// Add a key-value pair
-			dict_write_uint8(iter, 4, 0);
-
-			// Send the message!
-			app_message_outbox_send();
-		}
-	}
-}
-
-static void update_weather() {
-	// Begin dictionary
-	DictionaryIterator *iter;
-	app_message_outbox_begin(&iter);
-
-	// Add a key-value pair
-	dict_write_uint8(iter, 4, 0);
-
-	// Send the message!
-	app_message_outbox_send();
-}
-
-static void tap_handler(AccelAxisType axis, int32_t direction) {
-	if (shake_for_weather == 1) {
-		if (shake_for_weather == 0) {
-			APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Not animating.");
-			// Do not animate
-		} else {
-			APP_LOG(APP_LOG_LEVEL_INFO, "Tap! Animating");
-			animate_layers();
-		}
-	}
 }
 
 static void init() {
