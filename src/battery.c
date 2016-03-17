@@ -7,15 +7,15 @@ void charge_handler() {
 	bool charging = state.is_charging;
 	
 	if (charging == true) {
-		layer_set_hidden(text_layer_get_layer(s_charge_layer), false);
+		layer_set_hidden(text_layer_get_layer(charge_layer), false);
 	} else {
-		layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
+		layer_set_hidden(text_layer_get_layer(charge_layer), true);
 	}
 }
 
 void battery_handler(BatteryChargeState state) {
 	APP_LOG(APP_LOG_LEVEL_INFO, "Battery change registered!");
-	layer_mark_dirty(s_batt_layer);
+	layer_mark_dirty(batt_layer);
 	charge_handler();
 }
 
@@ -45,7 +45,7 @@ void batt_layer_draw(Layer *layer, GContext *ctx) {
 
 	//graphics_fill_rect(ctx, GRect(2, 92, 140-(((100-pct)/10)*14), 2), 0, GCornerNone); // Draw battery
 
-	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 
 	/*
 	graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2), (140-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to right
@@ -77,7 +77,7 @@ void static_layer_draw(Layer *layer, GContext *ctx) {
 		}
 	#endif
 
-	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 
 	graphics_fill_rect(ctx, GRect(PBL_IF_ROUND_ELSE(20, 2), (bounds.size.h / 2) + 8, 140, 2), 0, GCornerNone); // Draw static bar
 }

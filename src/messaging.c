@@ -162,17 +162,17 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
 
 		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_t->value->cstring);
-		text_layer_set_text(s_conditions_layer, conditions_buffer);
-		text_layer_set_text(s_conditions_layer_unanimated, conditions_buffer);
-		//text_layer_set_text(s_conditions_layer, "This is some placeholder text");
-		//text_layer_set_text(s_conditions_layer_unanimated, "This is some placeholder text");
+		text_layer_set_text(conditions_layer, conditions_buffer);
+		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
+		//text_layer_set_text(conditions_layer, "This is some placeholder text");
+		//text_layer_set_text(conditions_layer_unanimated, "This is some placeholder text");
 
-		GSize cond_size = text_layer_get_content_size(s_conditions_layer);
-		GSize conds_size = text_layer_get_content_size(s_conditions_layer_unanimated);
-		GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+		GSize cond_size = text_layer_get_content_size(conditions_layer);
+		GSize conds_size = text_layer_get_content_size(conditions_layer_unanimated);
+		GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 
-		layer_set_frame(text_layer_get_layer(s_conditions_layer), GRect(0, 182, bounds.size.w, cond_size.h)); 
-		layer_set_frame(text_layer_get_layer(s_conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
+		layer_set_frame(text_layer_get_layer(conditions_layer), GRect(0, 182, bounds.size.w, cond_size.h)); 
+		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
   }
 
   if (vibe_on_connect_t) {
@@ -187,20 +187,20 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 
   if (use_celsius == 1) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using Celsius and getting temp size");
-  	text_layer_set_text(s_temp_layer, temp_c_buffer);
-  	text_layer_set_text(s_temp_layer_unanimated, temp_c_buffer);
+  	text_layer_set_text(temp_layer, temp_c_buffer);
+  	text_layer_set_text(temp_layer_unanimated, temp_c_buffer);
 		
-		/*GSize temp_size = text_layer_get_content_size(s_temp_layer);
-		GSize temps_size = text_layer_get_content_size(s_temp_layer_unanimated);
-		GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+		/*GSize temp_size = text_layer_get_content_size(temp_layer);
+		GSize temps_size = text_layer_get_content_size(temp_layer_unanimated);
+		GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 		APP_LOG(APP_LOG_LEVEL_INFO, "Temp size is %d", temp_size.h);
 		
-		layer_set_frame(text_layer_get_layer(s_temp_layer), GRect(0, -32, bounds.size.w, 18));
-		layer_set_frame(text_layer_get_layer(s_temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w,  18));*/
+		layer_set_frame(text_layer_get_layer(temp_layer), GRect(0, -32, bounds.size.w, 18));
+		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w,  18));*/
   } else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using Fahrenheit and getting temp size");
-  	text_layer_set_text(s_temp_layer, temp_buffer);
-  	text_layer_set_text(s_temp_layer_unanimated, temp_buffer);
+  	text_layer_set_text(temp_layer, temp_buffer);
+  	text_layer_set_text(temp_layer_unanimated, temp_buffer);
   }
 
   if (reflect_batt_t) {
@@ -233,19 +233,19 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		
 		if (large_font == 1) {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
-			text_layer_set_font(s_conditions_layer, s_weather_font);
-			text_layer_set_font(s_temp_layer, s_weather_font);
-			text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
-			text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
+			text_layer_set_font(conditions_layer, weather_font);
+			text_layer_set_font(temp_layer, weather_font);
+			text_layer_set_font(conditions_layer_unanimated, weather_font);
+			text_layer_set_font(temp_layer_unanimated, weather_font);
 		} else {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
-			text_layer_set_font(s_conditions_layer, s_bt_font);
-			text_layer_set_font(s_temp_layer, s_bt_font);
-			text_layer_set_font(s_conditions_layer_unanimated, s_bt_font);
-			text_layer_set_font(s_temp_layer_unanimated, s_bt_font);
+			text_layer_set_font(conditions_layer, bt_font);
+			text_layer_set_font(temp_layer, bt_font);
+			text_layer_set_font(conditions_layer_unanimated, bt_font);
+			text_layer_set_font(temp_layer_unanimated, bt_font);
 		}
 
-			layer_mark_dirty(text_layer_get_layer(s_conditions_layer));
+			layer_mark_dirty(text_layer_get_layer(conditions_layer));
 		}
 
   update_layers();

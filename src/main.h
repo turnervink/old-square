@@ -19,7 +19,7 @@
 #define KEY_READY 15
 #define KEY_LARGE_FONT 16
 
-Window *s_main_window;
+Window *main_window;
 
 // Config options
 bool ready;
@@ -52,10 +52,10 @@ void set_background_color(int bgcolor);
 void inverter();
 
 // Weather TextLayers
-TextLayer *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated;
+TextLayer *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated;
 
 // Weather GFonts
-GFont s_weather_font, s_bt_font;
+GFont weather_font, bt_font;
 
 // Update functions
 void update_layers();

@@ -3,16 +3,16 @@
 #include "main.h"
 #include "battery.h"
 	
-Window *s_main_window;
+Window *main_window;
 
-static TextLayer *s_time_layer, *s_date_layer, *s_bluetooth_layer;
-TextLayer *s_temp_layer, *s_conditions_layer, *s_temp_layer_unanimated, *s_conditions_layer_unanimated, *s_charge_layer;
+static TextLayer *time_layer, *date_layer, *bluetooth_layer;
+TextLayer *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated, *charge_layer;
 
-static GFont s_time_font, s_date_font;
-GFont s_weather_font, s_bt_font;
+static GFont time_font, date_font;
+GFont weather_font, bt_font;
 
-static Layer  *s_weather_layer, *s_weather_layer_unanimated;
-Layer *s_batt_layer, *s_static_layer;
+static Layer  *weather_layer, *weather_layer_unanimated;
+Layer *batt_layer, *static_layer;
 
 // Config options
 bool ready = 0;
@@ -54,9 +54,9 @@ void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int 
 }
 
 static void animate_layers() {
-	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
-	GSize cond_size = text_layer_get_content_size(s_conditions_layer);
-	GSize temp_size = text_layer_get_content_size(s_temp_layer);
+	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
+	GSize cond_size = text_layer_get_content_size(conditions_layer);
+	GSize temp_size = text_layer_get_content_size(temp_layer);
 	
 	
 
@@ -64,33 +64,33 @@ static void animate_layers() {
 	GRect wins = GRect(0, bounds.size.h + cond_size.h, bounds.size.w, cond_size.h);
 	GRect winf = GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h);
 	
-	animate_layer(text_layer_get_layer(s_conditions_layer), &wins, &winf, 1000, 0);
+	animate_layer(text_layer_get_layer(conditions_layer), &wins, &winf, 1000, 0);
 
 	GRect wouts = GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h);
 	GRect woutf = GRect(0, bounds.size.h + 10, bounds.size.w, cond_size.h);
 	
-	animate_layer(text_layer_get_layer(s_conditions_layer), &wouts, &woutf, 1000, 5000);
+	animate_layer(text_layer_get_layer(conditions_layer), &wouts, &woutf, 1000, 5000);
 
 	// Temp moves in from top
 	GRect tins = GRect(0, -32, bounds.size.w, temp_size.h);
 	GRect tinf = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
 	
-	animate_layer(text_layer_get_layer(s_temp_layer), &tins, &tinf, 1000, 0);
+	animate_layer(text_layer_get_layer(temp_layer), &tins, &tinf, 1000, 0);
 
 	GRect touts = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
 	GRect toutf = GRect(0, -32, bounds.size.w, temp_size.h);
 	
-	animate_layer(text_layer_get_layer(s_temp_layer), &touts, &toutf, 1000, 5000);
+	animate_layer(text_layer_get_layer(temp_layer), &touts, &toutf, 1000, 5000);
 }
 
 static void bluetooth_handler(bool connected) {
 	if (!connected) {
-		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
+		layer_set_hidden(text_layer_get_layer(bluetooth_layer), false);
 		if (vibe_on_disconnect == 1) {
 			vibes_long_pulse();
 		}
 	} else {
-		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
+		layer_set_hidden(text_layer_get_layer(bluetooth_layer), true);
 		if (vibe_on_connect == 1) {
 			vibes_double_pulse();
 		}
@@ -133,7 +133,7 @@ void update_time() {
     strftime(time_buffer, sizeof("00:00"), "%I:%M", tick_time);
   }
 	
-	text_layer_set_text(s_time_layer, time_buffer);
+	text_layer_set_text(time_layer, time_buffer);
 
 	strftime(datn_buffer, sizeof("DD"), "%d", tick_time); // Write current date to buffer
 	int month = tick_time->tm_mon; // Get current month as an integer
@@ -146,79 +146,79 @@ void update_time() {
 		snprintf(date_buffer, sizeof(date_buffer), "%s %s %s", dayNames[lang][weekday], monthNames[lang][month], datn_buffer);
 	}
 
-	text_layer_set_text(s_date_layer, date_buffer); // Display the date info
+	text_layer_set_text(date_layer, date_buffer); // Display the date info
 }
 
 void update_layers() {
 	if (show_weather == 0) {
-		layer_set_hidden(s_weather_layer, true);
-		layer_set_hidden(s_weather_layer_unanimated, true);
+		layer_set_hidden(weather_layer, true);
+		layer_set_hidden(weather_layer_unanimated, true);
 	} else {
 		if (shake_for_weather == 0) {
-			layer_set_hidden(s_weather_layer, true);
-			layer_set_hidden(s_weather_layer_unanimated, false);
+			layer_set_hidden(weather_layer, true);
+			layer_set_hidden(weather_layer_unanimated, false);
 		} else {
-			layer_set_hidden(s_weather_layer, false);
-			layer_set_hidden(s_weather_layer_unanimated, true);
+			layer_set_hidden(weather_layer, false);
+			layer_set_hidden(weather_layer_unanimated, true);
 		}
 	}
 
 	if (reflect_batt == 1) {
-		layer_set_hidden(s_static_layer, true);
-		layer_set_hidden(s_batt_layer, false);
+		layer_set_hidden(static_layer, true);
+		layer_set_hidden(batt_layer, false);
   	} else {
-		layer_set_hidden(s_static_layer, false);
-		layer_set_hidden(s_batt_layer, true);
+		layer_set_hidden(static_layer, false);
+		layer_set_hidden(batt_layer, true);
   	}
 }
 
 void set_text_color(int color) {
   #ifdef PBL_COLOR
 		GColor text_color = GColorFromHEX(color);
-		text_layer_set_text_color(s_time_layer, text_color);
-		text_layer_set_text_color(s_date_layer, text_color);
-		text_layer_set_text_color(s_temp_layer, text_color);
-		text_layer_set_text_color(s_conditions_layer, text_color);
-		text_layer_set_text_color(s_temp_layer_unanimated, text_color);
-		text_layer_set_text_color(s_conditions_layer_unanimated, text_color);
-		text_layer_set_text_color(s_charge_layer, text_color);
-		text_layer_set_text_color(s_bluetooth_layer, text_color);
+		text_layer_set_text_color(time_layer, text_color);
+		text_layer_set_text_color(date_layer, text_color);
+		text_layer_set_text_color(temp_layer, text_color);
+		text_layer_set_text_color(conditions_layer, text_color);
+		text_layer_set_text_color(temp_layer_unanimated, text_color);
+		text_layer_set_text_color(conditions_layer_unanimated, text_color);
+		text_layer_set_text_color(charge_layer, text_color);
+		text_layer_set_text_color(bluetooth_layer, text_color);
   #endif
 }
 
 void set_background_color(int bgcolor) {
 	#ifdef PBL_COLOR
 		GColor bg_color = GColorFromHEX(bgcolor);
-		window_set_background_color(s_main_window, bg_color);
+		window_set_background_color(main_window, bg_color);
   	#endif
 }
 
 void inverter() {
 	if (invert_colors == 1) {
-	    	window_set_background_color(s_main_window, GColorWhite);
-			text_layer_set_text_color(s_time_layer, GColorBlack);
-			text_layer_set_text_color(s_date_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer, GColorBlack);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorBlack);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorBlack);
-			text_layer_set_text_color(s_charge_layer, GColorBlack);
-			text_layer_set_text_color(s_bluetooth_layer, GColorBlack);
+	    	window_set_background_color(main_window, GColorWhite);
+			text_layer_set_text_color(time_layer, GColorBlack);
+			text_layer_set_text_color(date_layer, GColorBlack);
+			text_layer_set_text_color(temp_layer, GColorBlack);
+			text_layer_set_text_color(conditions_layer, GColorBlack);
+			text_layer_set_text_color(temp_layer_unanimated, GColorBlack);
+			text_layer_set_text_color(conditions_layer_unanimated, GColorBlack);
+			text_layer_set_text_color(charge_layer, GColorBlack);
+			text_layer_set_text_color(bluetooth_layer, GColorBlack);
 	    } else {
-	    	window_set_background_color(s_main_window, GColorBlack);
-			text_layer_set_text_color(s_time_layer, GColorWhite);
-			text_layer_set_text_color(s_date_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer, GColorWhite);
-			text_layer_set_text_color(s_temp_layer_unanimated, GColorWhite);
-			text_layer_set_text_color(s_conditions_layer_unanimated, GColorWhite);
-			text_layer_set_text_color(s_charge_layer, GColorWhite);
-			text_layer_set_text_color(s_bluetooth_layer, GColorWhite);
+	    	window_set_background_color(main_window, GColorBlack);
+			text_layer_set_text_color(time_layer, GColorWhite);
+			text_layer_set_text_color(date_layer, GColorWhite);
+			text_layer_set_text_color(temp_layer, GColorWhite);
+			text_layer_set_text_color(conditions_layer, GColorWhite);
+			text_layer_set_text_color(temp_layer_unanimated, GColorWhite);
+			text_layer_set_text_color(conditions_layer_unanimated, GColorWhite);
+			text_layer_set_text_color(charge_layer, GColorWhite);
+			text_layer_set_text_color(bluetooth_layer, GColorWhite);
 	    }
 }
 
 static void main_window_load(Window *window) {
-	GRect bounds = layer_get_bounds(window_get_root_layer(s_main_window));
+	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 
 	// Create fonts
 	if (persist_exists(KEY_LARGE_FONT)) {
@@ -226,121 +226,121 @@ static void main_window_load(Window *window) {
 		large_font = persist_read_int(KEY_LARGE_FONT);
 	}
 
-	s_weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_18));
-	s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_50));
-	s_date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_26));
-	s_bt_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_14));
+	weather_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_18));
+	time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_50));
+	date_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_26));
+	bt_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_SQUARE_14));
 
 	// Weather parent layers
-	s_weather_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	s_weather_layer_unanimated = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	weather_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	weather_layer_unanimated = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	
 	// Battery bar
-	s_batt_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	layer_set_update_proc(s_batt_layer, batt_layer_draw);
+	batt_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	layer_set_update_proc(batt_layer, batt_layer_draw);
 
 	// Static bar
-	s_static_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	layer_set_update_proc(s_static_layer, static_layer_draw);
+	static_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	layer_set_update_proc(static_layer, static_layer_draw);
 
 	// Time layer
-	s_time_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	text_layer_set_font(s_time_layer, s_time_font);
-	//text_layer_set_text(s_time_layer, "     "); // to get size
-	text_layer_set_background_color(s_time_layer, GColorClear);
-	text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
-	//text_layer_set_text(s_time_layer, "12:34");
+	time_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	text_layer_set_font(time_layer, time_font);
+	//text_layer_set_text(time_layer, "     "); // to get size
+	text_layer_set_background_color(time_layer, GColorClear);
+	text_layer_set_text_alignment(time_layer, GTextAlignmentCenter);
+	//text_layer_set_text(time_layer, "12:34");
 	
 	// Date layer
-	s_date_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	text_layer_set_font(s_date_layer, s_date_font);
-	text_layer_set_text(s_date_layer, "          ");
-	text_layer_set_background_color(s_date_layer, GColorClear);
-	text_layer_set_text_alignment(s_date_layer, GTextAlignmentCenter);
-	//text_layer_set_text(s_date_layer, "THU OCT 15");
+	date_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	text_layer_set_font(date_layer, date_font);
+	text_layer_set_text(date_layer, "          ");
+	text_layer_set_background_color(date_layer, GColorClear);
+	text_layer_set_text_alignment(date_layer, GTextAlignmentCenter);
+	//text_layer_set_text(date_layer, "THU OCT 15");
 	
 	update_time();
 	
-	GSize time_size = text_layer_get_content_size(s_time_layer);
-	layer_set_frame(text_layer_get_layer(s_time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, time_size.h));
-	GRect time_frame = layer_get_frame(text_layer_get_layer(s_time_layer));
+	GSize time_size = text_layer_get_content_size(time_layer);
+	layer_set_frame(text_layer_get_layer(time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, time_size.h));
+	GRect time_frame = layer_get_frame(text_layer_get_layer(time_layer));
 	
-	GSize date_size = text_layer_get_content_size(s_date_layer);
-	layer_set_frame(text_layer_get_layer(s_date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
-	GRect date_frame = layer_get_frame(text_layer_get_layer(s_date_layer));
+	GSize date_size = text_layer_get_content_size(date_layer);
+	layer_set_frame(text_layer_get_layer(date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
+	GRect date_frame = layer_get_frame(text_layer_get_layer(date_layer));
 	
 	// Charging status
-	s_charge_layer = text_layer_create(GRect(0, (date_frame.origin.y + date_size.h), bounds.size.w, bounds.size.h));
-	text_layer_set_background_color(s_charge_layer, GColorClear);
-	text_layer_set_font(s_charge_layer, s_bt_font);
-	text_layer_set_text_alignment(s_charge_layer, GTextAlignmentCenter);
-	text_layer_set_text(s_charge_layer, "CHRG");
-	layer_set_hidden(text_layer_get_layer(s_charge_layer), true);
+	charge_layer = text_layer_create(GRect(0, (date_frame.origin.y + date_size.h), bounds.size.w, bounds.size.h));
+	text_layer_set_background_color(charge_layer, GColorClear);
+	text_layer_set_font(charge_layer, bt_font);
+	text_layer_set_text_alignment(charge_layer, GTextAlignmentCenter);
+	text_layer_set_text(charge_layer, "CHRG");
+	layer_set_hidden(text_layer_get_layer(charge_layer), true);
 
 	// Bluetooth status
-	s_bluetooth_layer = text_layer_create(GRect(0, time_frame.origin.y - 3, bounds.size.w, bounds.size.h));
-	text_layer_set_background_color(s_bluetooth_layer, GColorClear);
-	text_layer_set_font(s_bluetooth_layer, s_bt_font);
-	text_layer_set_text_alignment(s_bluetooth_layer, GTextAlignmentCenter);
-	text_layer_set_text(s_bluetooth_layer, "BT");
+	bluetooth_layer = text_layer_create(GRect(0, time_frame.origin.y - 3, bounds.size.w, bounds.size.h));
+	text_layer_set_background_color(bluetooth_layer, GColorClear);
+	text_layer_set_font(bluetooth_layer, bt_font);
+	text_layer_set_text_alignment(bluetooth_layer, GTextAlignmentCenter);
+	text_layer_set_text(bluetooth_layer, "BT");
 
 	// ========== WEATHER LAYERS ========== //
 
 	// Temperature
-	s_temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 18));
-	text_layer_set_background_color(s_temp_layer, GColorClear);
-	text_layer_set_text_alignment(s_temp_layer, GTextAlignmentCenter);
+	temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 18));
+	text_layer_set_background_color(temp_layer, GColorClear);
+	text_layer_set_text_alignment(temp_layer, GTextAlignmentCenter);
 
 	// Conditions
-	s_conditions_layer = text_layer_create(GRect(0, 182, bounds.size.w, 14));
-	text_layer_set_overflow_mode(s_conditions_layer, GTextOverflowModeWordWrap);
-	text_layer_set_background_color(s_conditions_layer, GColorClear);
-	text_layer_set_text_alignment(s_conditions_layer, GTextAlignmentCenter);
+	conditions_layer = text_layer_create(GRect(0, 182, bounds.size.w, 14));
+	text_layer_set_overflow_mode(conditions_layer, GTextOverflowModeWordWrap);
+	text_layer_set_background_color(conditions_layer, GColorClear);
+	text_layer_set_text_alignment(conditions_layer, GTextAlignmentCenter);
 
 	// Temperature unanimated
-	s_temp_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 18));
-	text_layer_set_background_color(s_temp_layer_unanimated, GColorClear);
-	text_layer_set_text_alignment(s_temp_layer_unanimated, GTextAlignmentCenter);
+	temp_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 18));
+	text_layer_set_background_color(temp_layer_unanimated, GColorClear);
+	text_layer_set_text_alignment(temp_layer_unanimated, GTextAlignmentCenter);
 
 	// Conditions unanimated
-	s_conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 40, 150), bounds.size.w, 14));
-	text_layer_set_overflow_mode(s_conditions_layer_unanimated, GTextOverflowModeWordWrap);
-	text_layer_set_background_color(s_conditions_layer_unanimated, GColorClear);
-	text_layer_set_text_alignment(s_conditions_layer_unanimated, GTextAlignmentCenter);
+	conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 40, 150), bounds.size.w, 14));
+	text_layer_set_overflow_mode(conditions_layer_unanimated, GTextOverflowModeWordWrap);
+	text_layer_set_background_color(conditions_layer_unanimated, GColorClear);
+	text_layer_set_text_alignment(conditions_layer_unanimated, GTextAlignmentCenter);
 	
 	if (large_font == 1) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
-		text_layer_set_font(s_conditions_layer, s_weather_font);
-		text_layer_set_font(s_temp_layer, s_weather_font);
-		text_layer_set_font(s_conditions_layer_unanimated, s_weather_font);
-		text_layer_set_font(s_temp_layer_unanimated, s_weather_font);
+		text_layer_set_font(conditions_layer, weather_font);
+		text_layer_set_font(temp_layer, weather_font);
+		text_layer_set_font(conditions_layer_unanimated, weather_font);
+		text_layer_set_font(temp_layer_unanimated, weather_font);
 	} else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
-		text_layer_set_font(s_conditions_layer, s_bt_font);
-		text_layer_set_font(s_temp_layer, s_bt_font);
-		text_layer_set_font(s_conditions_layer_unanimated, s_bt_font);
-		text_layer_set_font(s_temp_layer_unanimated, s_bt_font);
+		text_layer_set_font(conditions_layer, bt_font);
+		text_layer_set_font(temp_layer, bt_font);
+		text_layer_set_font(conditions_layer_unanimated, bt_font);
+		text_layer_set_font(temp_layer_unanimated, bt_font);
 	}
 	
 	// ========== ADD CHILDREN ========== //
 
 	// Main elements
-	layer_add_child(window_get_root_layer(window), s_batt_layer);
-	layer_add_child(window_get_root_layer(window), s_static_layer);
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_date_layer));
+	layer_add_child(window_get_root_layer(window), batt_layer);
+	layer_add_child(window_get_root_layer(window), static_layer);
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(time_layer));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(date_layer));
 
 	// Extra elements
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_charge_layer));
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_bluetooth_layer));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(charge_layer));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(bluetooth_layer));
 
 	// Weather elements
-	layer_add_child(window_get_root_layer(window), s_weather_layer);
-	layer_add_child(window_get_root_layer(window), s_weather_layer_unanimated);
-	layer_add_child(s_weather_layer, text_layer_get_layer(s_temp_layer));
-	layer_add_child(s_weather_layer, text_layer_get_layer(s_conditions_layer));
-	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_temp_layer_unanimated));
-	layer_add_child(s_weather_layer_unanimated, text_layer_get_layer(s_conditions_layer_unanimated));
+	layer_add_child(window_get_root_layer(window), weather_layer);
+	layer_add_child(window_get_root_layer(window), weather_layer_unanimated);
+	layer_add_child(weather_layer, text_layer_get_layer(temp_layer));
+	layer_add_child(weather_layer, text_layer_get_layer(conditions_layer));
+	layer_add_child(weather_layer_unanimated, text_layer_get_layer(temp_layer_unanimated));
+	layer_add_child(weather_layer_unanimated, text_layer_get_layer(conditions_layer_unanimated));
 
 	// ========== CHECK FOR EXISTING KEYS ========== //
 	
@@ -387,15 +387,15 @@ static void main_window_load(Window *window) {
   	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT exists! - %d", reflect_batt);
 
   	  	if (reflect_batt == 1) {
-  			layer_set_hidden(s_static_layer, true);
-  			layer_set_hidden(s_batt_layer, false);
+  			layer_set_hidden(static_layer, true);
+  			layer_set_hidden(batt_layer, false);
   		} else {
-  			layer_set_hidden(s_static_layer, false);
-  			layer_set_hidden(s_batt_layer, true);
+  			layer_set_hidden(static_layer, false);
+  			layer_set_hidden(batt_layer, true);
   		}
   	} else {
-  		layer_set_hidden(s_static_layer, true);
-  		layer_set_hidden(s_batt_layer, false);
+  		layer_set_hidden(static_layer, true);
+  		layer_set_hidden(batt_layer, false);
   	}
 
   	if (persist_exists(KEY_SHOW_WEATHER)) {
@@ -405,8 +405,8 @@ static void main_window_load(Window *window) {
   		if (show_weather == 1) {
   			update_layers();
   		} else {
-  			layer_set_hidden(s_weather_layer, true);
-  			layer_set_hidden(s_weather_layer_unanimated, true);
+  			layer_set_hidden(weather_layer, true);
+  			layer_set_hidden(weather_layer_unanimated, true);
   		}
   	}
 
@@ -426,40 +426,40 @@ static void main_window_load(Window *window) {
   	bool connected = bluetooth_connection_service_peek();
 
   	if (!connected) {
- 		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), false);
+ 		layer_set_hidden(text_layer_get_layer(bluetooth_layer), false);
  	} else {
-  		layer_set_hidden(text_layer_get_layer(s_bluetooth_layer), true);
+  		layer_set_hidden(text_layer_get_layer(bluetooth_layer), true);
  	}
 
   	charge_handler(); // Is the battery charging?
 }
 
 static void main_window_unload(Window *window) {
-	text_layer_destroy(s_time_layer);
-	text_layer_destroy(s_date_layer);
-	text_layer_destroy(s_charge_layer);
-	text_layer_destroy(s_conditions_layer);
-	text_layer_destroy(s_conditions_layer_unanimated);
-	text_layer_destroy(s_temp_layer);
-	text_layer_destroy(s_temp_layer_unanimated);
-	layer_destroy(s_batt_layer);
-	layer_destroy(s_weather_layer);
-	layer_destroy(s_weather_layer_unanimated);
+	text_layer_destroy(time_layer);
+	text_layer_destroy(date_layer);
+	text_layer_destroy(charge_layer);
+	text_layer_destroy(conditions_layer);
+	text_layer_destroy(conditions_layer_unanimated);
+	text_layer_destroy(temp_layer);
+	text_layer_destroy(temp_layer_unanimated);
+	layer_destroy(batt_layer);
+	layer_destroy(weather_layer);
+	layer_destroy(weather_layer_unanimated);
 
-	fonts_unload_custom_font(s_time_font);
-	fonts_unload_custom_font(s_date_font);
-	fonts_unload_custom_font(s_weather_font);
+	fonts_unload_custom_font(time_font);
+	fonts_unload_custom_font(date_font);
+	fonts_unload_custom_font(weather_font);
 }
 
 static void init() {
-	s_main_window = window_create();
+	main_window = window_create();
 
-	window_set_window_handlers(s_main_window, (WindowHandlers) {
+	window_set_window_handlers(main_window, (WindowHandlers) {
 		.load = main_window_load,
 		.unload = main_window_unload
 	});
 
-	window_stack_push(s_main_window, true);
+	window_stack_push(main_window, true);
 	tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 	battery_state_service_subscribe(battery_handler);
 	accel_tap_service_subscribe(tap_handler);
@@ -471,7 +471,7 @@ static void init() {
 }
 
 static void deinit() {
-  window_destroy(s_main_window);
+  window_destroy(main_window);
   tick_timer_service_unsubscribe();
  	battery_state_service_unsubscribe();
 }
