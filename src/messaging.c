@@ -37,57 +37,57 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
 
-  Tuple *ready_t = dict_find(iter, KEY_READY); // cstring
+  Tuple *ready_tup = dict_find(iter, KEY_READY); // cstring
 
-  Tuple *text_color_t = dict_find(iter, KEY_TEXT_COLOR); // int32
-  Tuple *invert_colors_t = dict_find(iter, KEY_INVERT_COLORS); // int8
-  Tuple *temperature_t = dict_find(iter, KEY_TEMPERATURE); // int32
-  Tuple *temperature_in_c_t = dict_find(iter, KEY_TEMPERATURE_IN_C); // int32
-  Tuple *conditions_t = dict_find(iter, KEY_CONDITIONS); // cstring
-  Tuple *shake_for_weather_t = dict_find(iter, KEY_SHAKE_FOR_WEATHER); // int8
-  Tuple *show_weather_t = dict_find(iter, KEY_SHOW_WEATHER); // int8
-  Tuple *use_celsius_t = dict_find(iter, KEY_USE_CELSIUS); // int8
-  Tuple *background_color_t = dict_find(iter, KEY_BACKGROUND_COLOR); // int32
-  Tuple *vibe_on_connect_t = dict_find(iter, KEY_VIBE_ON_CONNECT); // int8
-  Tuple *vibe_on_disconnect_t = dict_find(iter, KEY_VIBE_ON_DISCONNECT); // int8
-  Tuple *reflect_batt_t = dict_find(iter, KEY_REFLECT_BATT); // int8
-  Tuple *date_format_t = dict_find(iter, KEY_DATE_FORMAT); // cstring
-  Tuple *lang_t = dict_find(iter, KEY_LANGUAGE); // cstring
-	Tuple *largefont_t = dict_find(iter, KEY_LARGE_FONT); // int8
+  Tuple *text_color_tup = dict_find(iter, KEY_TEXT_COLOR); // int32
+  Tuple *invert_colors_tup = dict_find(iter, KEY_INVERT_COLORS); // int8
+  Tuple *temperature_tup = dict_find(iter, KEY_TEMPERATURE); // int32
+  Tuple *temperature_in_c_tup = dict_find(iter, KEY_TEMPERATURE_IN_C); // int32
+  Tuple *conditions_tup = dict_find(iter, KEY_CONDITIONS); // cstring
+  Tuple *shake_for_weather_tup = dict_find(iter, KEY_SHAKE_FOR_WEATHER); // int8
+  Tuple *show_weather_tup = dict_find(iter, KEY_SHOW_WEATHER); // int8
+  Tuple *use_celsius_tup = dict_find(iter, KEY_USE_CELSIUS); // int8
+  Tuple *background_color_tup = dict_find(iter, KEY_BACKGROUND_COLOR); // int32
+  Tuple *vibe_on_connect_tup = dict_find(iter, KEY_VIBE_ON_CONNECT); // int8
+  Tuple *vibe_on_disconnect_tup = dict_find(iter, KEY_VIBE_ON_DISCONNECT); // int8
+  Tuple *reflect_batt_tup = dict_find(iter, KEY_REFLECT_BATT); // int8
+  Tuple *date_format_tup = dict_find(iter, KEY_DATE_FORMAT); // cstring
+  Tuple *lang_tup = dict_find(iter, KEY_LANGUAGE); // cstring
+	Tuple *largefont_tup = dict_find(iter, KEY_LARGE_FONT); // int8
 	
 
-  if (ready_t) { // Wait for JS to be ready before requesting weather in selected language
+  if (ready_tup) { // Wait for JS to be ready before requesting weather in selected language
   	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
   	ready = 1;
 
   	sendLang(langCodes[lang]);
   }
 
-  if (lang_t) {
+  if (lang_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	if (strcmp(lang_t->value->cstring, "en") == 0) {
+  	if (strcmp(lang_tup->value->cstring, "en") == 0) {
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
   		lang = 0;
-  	} else if (strcmp(lang_t->value->cstring, "fr") == 0){
+  	} else if (strcmp(lang_tup->value->cstring, "fr") == 0){
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
   		lang = 1;
-  	} else if (strcmp(lang_t->value->cstring, "es") == 0){
+  	} else if (strcmp(lang_tup->value->cstring, "es") == 0){
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
   		lang = 2;
-  	} else if (strcmp(lang_t->value->cstring, "de") == 0){
+  	} else if (strcmp(lang_tup->value->cstring, "de") == 0){
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
   		lang = 3;
   	} else {
   		lang = 0;
   	}
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	sendLang(lang_t->value->cstring);
+  	sendLang(lang_tup->value->cstring);
 
   	persist_write_int(KEY_LANGUAGE, lang);
   }
 
-  if (text_color_t) {
-    int text_color = text_color_t->value->int32;
+  if (text_color_tup) {
+    int text_color = text_color_tup->value->int32;
     APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR received!");
 
     persist_write_int(KEY_TEXT_COLOR, text_color);
@@ -98,8 +98,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
     #endif
   }
 
-  if (background_color_t) {
-  	int bg_color = background_color_t->value->int32;
+  if (background_color_tup) {
+  	int bg_color = background_color_tup->value->int32;
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR received! - %d", bg_color);
 
   	persist_write_int(KEY_BACKGROUND_COLOR, bg_color);
@@ -110,9 +110,9 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
     #endif
   }
 
-  if (invert_colors_t) {
+  if (invert_colors_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS received!");
-    invert_colors = invert_colors_t->value->int8;
+    invert_colors = invert_colors_tup->value->int8;
 
 
     persist_write_int(KEY_INVERT_COLORS, invert_colors);
@@ -122,46 +122,46 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
     #endif
   }
 
-  if (use_celsius_t) {
+  if (use_celsius_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_USE_CELSIUS received!");
 
-  	use_celsius = use_celsius_t->value->int8;
+  	use_celsius = use_celsius_tup->value->int8;
 
   	persist_write_int(KEY_USE_CELSIUS, use_celsius);
   }
 
-  if (shake_for_weather_t) {
+  if (shake_for_weather_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHAKE_FOR_WEATHER received!");
 
-  	shake_for_weather = shake_for_weather_t->value->int8;
+  	shake_for_weather = shake_for_weather_tup->value->int8;
 
   	persist_write_int(KEY_SHAKE_FOR_WEATHER, shake_for_weather);
   }
 
-  if (show_weather_t) {
+  if (show_weather_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
 
-  	show_weather = show_weather_t->value->int8;
+  	show_weather = show_weather_tup->value->int8;
 
   	persist_write_int(KEY_SHOW_WEATHER, show_weather);
   }
 
-  if (temperature_t) {
+  if (temperature_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE received!");
 
-  	snprintf(temp_buffer, sizeof(temp_buffer), "%d°", (int)temperature_t->value->int32);
+  	snprintf(temp_buffer, sizeof(temp_buffer), "%d°", (int)temperature_tup->value->int32);
   }
 
-  if (temperature_in_c_t) {
+  if (temperature_in_c_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE_IN_C received!");
 
-  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d°", (int)temperature_in_c_t->value->int32);
+  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d°", (int)temperature_in_c_tup->value->int32);
   }
 
-  if (conditions_t) {
+  if (conditions_tup) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
 
-		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_t->value->cstring);
+		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
 		text_layer_set_text(conditions_layer, conditions_buffer);
 		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
 		//text_layer_set_text(conditions_layer, "This is some placeholder text");
@@ -175,14 +175,14 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
   }
 
-  if (vibe_on_connect_t) {
+  if (vibe_on_connect_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_CONNECT received!");
-  	vibe_on_connect = vibe_on_connect_t->value->int8;
+  	vibe_on_connect = vibe_on_connect_tup->value->int8;
   }
 
-  if (vibe_on_disconnect_t) {
+  if (vibe_on_disconnect_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_DISCONNECT received!");
-  	vibe_on_disconnect = vibe_on_disconnect_t->value->int8;
+  	vibe_on_disconnect = vibe_on_disconnect_tup->value->int8;
   }
 
   if (use_celsius == 1) {
@@ -203,18 +203,18 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	text_layer_set_text(temp_layer_unanimated, temp_buffer);
   }
 
-  if (reflect_batt_t) {
+  if (reflect_batt_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT received!");
 
-  	reflect_batt = reflect_batt_t->value->int8;
+  	reflect_batt = reflect_batt_tup->value->int8;
 
   	persist_write_int(KEY_REFLECT_BATT, reflect_batt);
   }
 
-  if (date_format_t) {
+  if (date_format_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_DATE_FORMAT received!");
 
-  	if (strcmp(date_format_t->value->cstring, "edate") == 0) {
+  	if (strcmp(date_format_tup->value->cstring, "edate") == 0) {
   		APP_LOG(APP_LOG_LEVEL_INFO, "Using european date");
   		euro_date = 1;
   		persist_write_int(KEY_DATE_FORMAT, euro_date);
@@ -225,8 +225,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	}
   }
 	
-	if (largefont_t) {
-		large_font = largefont_t->value->int8;
+	if (largefont_tup) {
+		large_font = largefont_tup->value->int8;
 		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LARGE_FONT received! - %d", large_font);
 		
 		persist_write_int(KEY_LARGE_FONT, large_font);
