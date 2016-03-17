@@ -23,19 +23,14 @@
         "configurable"
     ],
     "companyName": "Turner Vink",
+    "enableMultiJS": true,
     "longName": "Square",
     "projectType": "native",
     "resources": {
         "media": [
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_14",
-                "targetPlatforms": null,
-                "type": "font"
-            },
-            {
-                "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_26",
+                "name": "FONT_SQUARE_18",
                 "targetPlatforms": null,
                 "type": "font"
             },
@@ -47,7 +42,13 @@
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_18",
+                "name": "FONT_SQUARE_26",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_14",
                 "targetPlatforms": null,
                 "type": "font"
             }
