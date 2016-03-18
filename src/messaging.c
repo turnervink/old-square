@@ -257,7 +257,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		
 		if (show_seconds == 1) {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Subscribing to seconds");
-			layer_set_hidden(text_layer_get_layer(sec_layer), false);
+			layer_set_hidden(text_layer_get_layer(sec_layer), true);
 			tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 		} else {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Subscribing to minutes");
