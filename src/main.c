@@ -73,11 +73,21 @@ static void animate_layers() {
 
 	// Temp moves in from top
 	GRect tins = GRect(0, -32, bounds.size.w, temp_size.h);
-	GRect tinf = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
+	GRect tinf;
+	if (show_seconds == 1) {
+		tinf = GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, temp_size.h);
+	} else {
+		tinf = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
+	}
 	
 	animate_layer(text_layer_get_layer(temp_layer), &tins, &tinf, 1000, 0);
 
-	GRect touts = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
+	GRect touts;
+	if (show_seconds == 1) {
+		touts = GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, temp_size.h);
+	} else {
+		touts = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
+	}
 	GRect toutf = GRect(0, -32, bounds.size.w, temp_size.h);
 	
 	animate_layer(text_layer_get_layer(temp_layer), &touts, &toutf, 1000, 5000);
@@ -160,14 +170,18 @@ void update_time() {
 }
 
 void update_layers() {
+	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 	if (show_weather == 0) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Hiding weather");
 		layer_set_hidden(weather_layer, true);
 		layer_set_hidden(weather_layer_unanimated, true);
 	} else {
 		if (shake_for_weather == 0) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Showing static weather");
 			layer_set_hidden(weather_layer, true);
 			layer_set_hidden(weather_layer_unanimated, false);
 		} else {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Showing animated weather");
 			layer_set_hidden(weather_layer, false);
 			layer_set_hidden(weather_layer_unanimated, true);
 		}
@@ -176,10 +190,16 @@ void update_layers() {
 	if (reflect_batt == 1) {
 		layer_set_hidden(static_layer, true);
 		layer_set_hidden(batt_layer, false);
-  	} else {
+  } else {
 		layer_set_hidden(static_layer, false);
 		layer_set_hidden(batt_layer, true);
-  	}
+  }
+	
+	if (shake_for_weather == 0 && show_seconds == 1) {
+		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, 18));
+	} else {
+		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 18));
+	}
 }
 
 void set_text_color(int color) {
@@ -399,7 +419,7 @@ static void main_window_load(Window *window) {
 	    inverter();
 	#endif
 
-	if (persist_exists(KEY_USE_CELSIUS)) {
+		if (persist_exists(KEY_USE_CELSIUS)) {
   	  	use_celsius = persist_read_int(KEY_USE_CELSIUS);
   	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_USE_CELSIUS exists! - %d", use_celsius);
   	}
@@ -408,6 +428,8 @@ static void main_window_load(Window *window) {
   	  	shake_for_weather = persist_read_int(KEY_SHAKE_FOR_WEATHER);
   	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHAKE_FOR_WEATHER exists! - %d", shake_for_weather);
   	}
+	
+		
 
   	if (persist_exists(KEY_REFLECT_BATT)) {
   	  	reflect_batt = persist_read_int(KEY_REFLECT_BATT);

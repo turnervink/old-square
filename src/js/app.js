@@ -1,7 +1,7 @@
 var Clay = require("clay");
 var clayConfig = require("config");
 var customClay = require("custom-clay");
-var clay = new Clay(clayConfig, customClay);
+var clay = new Clay(clayConfig, customClay, {AutoHandleEvents: false});
 
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
@@ -13,6 +13,7 @@ var xhrRequest = function (url, type, callback) {
 };
 
 var lang; // Language code
+var show_weather = 1;
 
 function locationSuccess(pos) {
   // Construct URL
@@ -85,7 +86,9 @@ Pebble.addEventListener('ready', function() {
       console.log('Failed to send ready message');
 			console.log(e);
   });
-												// Signal watch that JS is ready
+	
+	lang = localStorage.lang;
+	show_weather = localStorage.showWeather;
 });
 
 Pebble.addEventListener('appmessage',
@@ -101,14 +104,54 @@ Pebble.addEventListener('appmessage',
       getWeather(); // Fetch the weather
     }
 
-    if (e.payload.langSel) { // If KEY_LANGUAGE exists in appmessage
+    /*if (e.payload.langSel) { // If KEY_LANGUAGE exists in appmessage
       console.log('KEY_LANGUAGE recevied in appmessage');
       lang = messageContents.langSel; // Set lang to the value of KEY_LANGUAGE
-      getWeather(); // Fetch the weather with new language
-    }
+			if (show_weather === 1) {
+      	getWeather(); // Fetch the weather with new language
+			}
+    }*/
 
   }                     
 );
+
+//===== Config =====//
+
+Pebble.addEventListener('showConfiguration', function(e) {
+	console.log("Showing configuration page");
+  Pebble.openURL(clay.generateUrl());
+});
+
+Pebble.addEventListener('webviewclosed', function(e) {
+  if (e && !e.response) { 
+		console.log("No response from config page!");
+    return; 
+  }
+	
+	console.log("Configuration page returned: " + e.response);
+
+  // Get the keys and values from each config item
+  var dict = clay.getSettings(e.response);
+	
+	console.log("Dict contents: " + dict);
+	console.log("Selected language: " + dict.langSel);
+	console.log("Weather display: " + dict.showWeather);
+	
+	// Get the language and weather display settings and save them
+	lang = dict.langSel;
+	show_weather = dict.showWeather;
+	
+	localStorage.lang = lang;
+	localStorage.show_weather = show_weather;
+
+  // Send settings values to watch side
+  Pebble.sendAppMessage(dict, function(e) {
+    console.log('Sent config data to Pebble');
+  }, function(e) {
+    console.log('Failed to send config data!');
+    console.log(JSON.stringify(e));
+  });
+});
 
 // ========== CONFIGURATION ========== //
 

@@ -2,19 +2,6 @@
 #include "main.h"
 #include "languages.h"
 
-void sendLang(char* lang) { // Send selected language to JS to fetch weather
-	APP_LOG(APP_LOG_LEVEL_INFO, "Sending lang to JS - %s", lang);
-	// Begin dictionary
-	DictionaryIterator *iter;
-	app_message_outbox_begin(&iter);
-
-	// Add a key-value pair
-	dict_write_cstring(iter, 14, lang); // Key 14 is KEY_LANGUAGE
-
-	// Send the message!
-	app_message_outbox_send();
-}
-
 void init_appmessage() {
 	APP_LOG(APP_LOG_LEVEL_INFO, "Opening app message inbox");
 	
@@ -61,31 +48,11 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
   	ready = 1;
 
-  	sendLang(langCodes[lang]);
+  	//sendLang(langCodes[lang]);
+		update_weather();
   }
 
-  if (lang_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	if (strcmp(lang_tup->value->cstring, "en") == 0) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
-  		lang = 0;
-  	} else if (strcmp(lang_tup->value->cstring, "fr") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
-  		lang = 1;
-  	} else if (strcmp(lang_tup->value->cstring, "es") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
-  		lang = 2;
-  	} else if (strcmp(lang_tup->value->cstring, "de") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
-  		lang = 3;
-  	} else {
-  		lang = 0;
-  	}
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	sendLang(lang_tup->value->cstring);
-
-  	persist_write_int(KEY_LANGUAGE, lang);
-  }
+  
 
   if (text_color_tup) {
     int text_color = text_color_tup->value->int32;
@@ -261,13 +228,37 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		GSize time_size = text_layer_get_content_size(time_layer);
 		layer_set_frame(text_layer_get_layer(time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, time_size.h));
 	}
+	
+	if (lang_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
+  	if (strcmp(lang_tup->value->cstring, "en") == 0) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
+  		lang = 0;
+  	} else if (strcmp(lang_tup->value->cstring, "fr") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
+  		lang = 1;
+  	} else if (strcmp(lang_tup->value->cstring, "es") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
+  		lang = 2;
+  	} else if (strcmp(lang_tup->value->cstring, "de") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
+  		lang = 3;
+  	} else {
+  		lang = 0;
+  	}
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
+  	//sendLang(lang_tup->value->cstring);
+
+  	persist_write_int(KEY_LANGUAGE, lang);
+		update_weather();
+  }
 
   update_layers();
   update_time();
 }
 
 void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped! - %d", reason);
 }
 
 void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
