@@ -13,6 +13,16 @@ module.exports = function(minified) {
 		}
 	}
 	
+	function fontToggle() {
+		var largeFont = clayConfig.getItemByAppKey("largeFont");
+		if (this.get()) {
+			largeFont.disable();
+			largeFont.set(false);
+		} else {
+			largeFont.enable();
+		}
+	}
+	
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
 		var _ = minified._;
   	var $ = minified.$;
@@ -37,5 +47,9 @@ module.exports = function(minified) {
 		donateButton.on("click", function() {
 			window.location.href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XM6V4BDNBC2TJ";
 		});
+		
+		var showSeconds = clayConfig.getItemByAppKey("showSeconds");
+		fontToggle.call(showSeconds);
+		showSeconds.on("change", fontToggle);
   });
 };

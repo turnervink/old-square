@@ -12,6 +12,7 @@
         "reflectBatt": 12,
         "shakeWeather": 5,
         "showBluetooth": 11,
+        "showSeconds": 17,
         "showWeather": 8,
         "textColor": 0,
         "useCelsius": 6,
@@ -28,6 +29,12 @@
     "projectType": "native",
     "resources": {
         "media": [
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_34",
+                "targetPlatforms": null,
+                "type": "font"
+            },
             {
                 "file": "fonts/square.ttf",
                 "name": "FONT_SQUARE_14",
