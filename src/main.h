@@ -56,9 +56,6 @@ void inverter();
 // Weather TextLayers
 TextLayer *time_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated;
 
-// Second TextLayer
-TextLayer *sec_layer;
-
 // Weather GFonts
 GFont weather_font, bt_font, date_font, time_font, small_time_font;
 

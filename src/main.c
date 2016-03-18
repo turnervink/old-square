@@ -6,7 +6,7 @@
 Window *main_window;
 
 static TextLayer *date_layer, *bluetooth_layer;
-TextLayer *time_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated, *charge_layer, *sec_layer;
+TextLayer *time_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated, *charge_layer;
 
 GFont weather_font, bt_font, date_font, time_font, small_time_font;
 
@@ -124,7 +124,6 @@ void update_time() {
   struct tm *tick_time = localtime(&temp);
 	
   static char time_buffer[] = "00:00:00";
-	static char sec_buffer[] = "00";
   static char datn_buffer[] = "DD"; // Buffer for date number
   static char date_buffer[] = "WWW MMM DD"; // Buffer for entire date to display
   
@@ -144,13 +143,6 @@ void update_time() {
 	}
 	
 	text_layer_set_text(time_layer, time_buffer);
-	
-	// Display second (if chosen by user)
-	if (show_seconds == 1) {
-		strftime(sec_buffer, sizeof("00"), "%S", tick_time);
-
-		text_layer_set_text(sec_layer, sec_buffer);
-	}
 
 	// Display date
 	strftime(datn_buffer, sizeof("DD"), "%d", tick_time); // Write current date to buffer
@@ -195,7 +187,6 @@ void set_text_color(int color) {
 		GColor text_color = GColorFromHEX(color);
 		text_layer_set_text_color(time_layer, text_color);
 		text_layer_set_text_color(date_layer, text_color);
-		text_layer_set_text_color(sec_layer, text_color);
 		text_layer_set_text_color(temp_layer, text_color);
 		text_layer_set_text_color(conditions_layer, text_color);
 		text_layer_set_text_color(temp_layer_unanimated, text_color);
@@ -209,12 +200,12 @@ void set_background_color(int bgcolor) {
 	#ifdef PBL_COLOR
 		GColor bg_color = GColorFromHEX(bgcolor);
 		window_set_background_color(main_window, bg_color);
-  	#endif
+  #endif
 }
 
 void inverter() {
 	if (invert_colors == 1) {
-	    	window_set_background_color(main_window, GColorWhite);
+	    window_set_background_color(main_window, GColorWhite);
 			text_layer_set_text_color(time_layer, GColorBlack);
 			text_layer_set_text_color(date_layer, GColorBlack);
 			text_layer_set_text_color(temp_layer, GColorBlack);
@@ -265,16 +256,9 @@ static void main_window_load(Window *window) {
 
 	// Time layer
 	time_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	//text_layer_set_text(time_layer, "     "); // to get size
 	text_layer_set_background_color(time_layer, GColorClear);
 	text_layer_set_text_alignment(time_layer, GTextAlignmentCenter);
 	//text_layer_set_text(time_layer, "12:34");
-	
-	// Second layer
-	sec_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	text_layer_set_font(sec_layer, date_font);
-	text_layer_set_background_color(sec_layer, GColorClear);
-	text_layer_set_text_alignment(sec_layer, GTextAlignmentCenter);
 	
 	if (persist_exists(KEY_SHOW_SECONDS)) {
 		show_seconds = persist_read_int(KEY_SHOW_SECONDS);
@@ -282,11 +266,9 @@ static void main_window_load(Window *window) {
 		
 		if (show_seconds == 1) {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Subscribing to seconds");
-			layer_set_hidden(text_layer_get_layer(sec_layer), true);
 			tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
 		} else {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Subscribing to minutes");
-			layer_set_hidden(text_layer_get_layer(sec_layer), true);
 			tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 		}
 	}
@@ -295,10 +277,8 @@ static void main_window_load(Window *window) {
 	// Date layer
 	date_layer = text_layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	text_layer_set_font(date_layer, date_font);
-	text_layer_set_text(date_layer, "          ");
 	text_layer_set_background_color(date_layer, GColorClear);
 	text_layer_set_text_alignment(date_layer, GTextAlignmentCenter);
-	//text_layer_set_text(date_layer, "THU OCT 15");
 	
 	update_time();
 	
@@ -308,7 +288,6 @@ static void main_window_load(Window *window) {
 		text_layer_set_font(time_layer, time_font);
 	}
 	
-	
 	GSize time_size = text_layer_get_content_size(time_layer);
 	layer_set_frame(text_layer_get_layer(time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, time_size.h));
 	GRect time_frame = layer_get_frame(text_layer_get_layer(time_layer));
@@ -316,8 +295,6 @@ static void main_window_load(Window *window) {
 	GSize date_size = text_layer_get_content_size(date_layer);
 	layer_set_frame(text_layer_get_layer(date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
 	GRect date_frame = layer_get_frame(text_layer_get_layer(date_layer));
-	
-	layer_set_frame(text_layer_get_layer(sec_layer), GRect(0, date_frame.origin.y + date_size.h, bounds.size.w, bounds.size.h));
 	
 	// Charging status
 	charge_layer = text_layer_create(GRect(0, (date_frame.origin.y + date_size.h), bounds.size.w, bounds.size.h));
@@ -379,7 +356,6 @@ static void main_window_load(Window *window) {
 	layer_add_child(window_get_root_layer(window), static_layer);
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(time_layer));
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(date_layer));
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(sec_layer));
 
 	// Extra elements
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(charge_layer));
@@ -401,7 +377,7 @@ static void main_window_load(Window *window) {
 	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists! - %d", text_color);
 	    	set_text_color(text_color);
 	    } else {
-	    	set_text_color(0xFFFFFF); // white
+	    	set_text_color(0x00ff00); // green
 	    }
 
 	    if (persist_exists(KEY_BACKGROUND_COLOR)) {
@@ -437,7 +413,7 @@ static void main_window_load(Window *window) {
   	  	reflect_batt = persist_read_int(KEY_REFLECT_BATT);
   	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT exists! - %d", reflect_batt);
 
-  	  	if (reflect_batt == 1) {
+  	  if (reflect_batt == 1) {
   			layer_set_hidden(static_layer, true);
   			layer_set_hidden(batt_layer, false);
   		} else {
@@ -473,8 +449,6 @@ static void main_window_load(Window *window) {
   	} else {
   		lang = 0;
   	}
-	
-	
 
   	bool connected = bluetooth_connection_service_peek();
 
@@ -511,17 +485,9 @@ static void init() {
 		.load = main_window_load,
 		.unload = main_window_unload
 	});
-	
-	
 
 	window_stack_push(main_window, true);
 	
-	
-	/*if (show_seconds == 1) {
-		tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
-	} else {
-		tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-	}*/
 	battery_state_service_subscribe(battery_handler);
 	accel_tap_service_subscribe(tap_handler);
 	bluetooth_connection_service_subscribe(bluetooth_handler);
