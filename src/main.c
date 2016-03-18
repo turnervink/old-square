@@ -171,6 +171,7 @@ void update_time() {
 
 void update_layers() {
 	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
+	GSize cond_size = text_layer_get_content_size(conditions_layer);
 	if (show_weather == 0) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Hiding weather");
 		layer_set_hidden(weather_layer, true);
@@ -196,9 +197,9 @@ void update_layers() {
   }
 	
 	if (shake_for_weather == 0 && show_seconds == 1) {
-		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, 18));
+		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, cond_size.h));
 	} else {
-		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 18));
+		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, cond_size.h));
 	}
 }
 
