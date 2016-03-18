@@ -13,7 +13,7 @@ module.exports = function(minified) {
 		}
 	}
 	
-	function fontToggle() {
+	/*function fontToggle() {
 		var largeFont = clayConfig.getItemByAppKey("largeFont");
 		if (this.get()) {
 			largeFont.disable();
@@ -21,7 +21,7 @@ module.exports = function(minified) {
 		} else {
 			largeFont.enable();
 		}
-	}
+	}*/
 	
   clayConfig.on(clayConfig.EVENTS.AFTER_BUILD, function() {
 		var _ = minified._;
@@ -48,8 +48,8 @@ module.exports = function(minified) {
 			window.location.href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XM6V4BDNBC2TJ";
 		});
 		
-		var showSeconds = clayConfig.getItemByAppKey("showSeconds");
+		/*var showSeconds = clayConfig.getItemByAppKey("showSeconds");
 		fontToggle.call(showSeconds);
-		showSeconds.on("change", fontToggle);
+		showSeconds.on("change", fontToggle);*/
   });
 };

@@ -167,7 +167,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
 		text_layer_set_text(conditions_layer, conditions_buffer);
 		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
-		text_layer_set_text(conditions_layer, "Scattered cloudy clouds");
+		//text_layer_set_text(conditions_layer, "Scattered cloudy clouds");
 		//text_layer_set_text(conditions_layer_unanimated, "This is some placeholder text");
 
 		GSize cond_size = text_layer_get_content_size(conditions_layer);

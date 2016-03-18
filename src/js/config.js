@@ -143,7 +143,6 @@ module.exports = [
 				"appKey": "largeFont",
 				"label": "Use large weather font",
 				"defaultValue": false,
-				"description": "This setting cannot be used if seconds are enabled"
 			},
 		]
 	},
