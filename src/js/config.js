@@ -134,9 +134,15 @@ module.exports = [
 			},
 			{
 				"type": "toggle",
+				"appKey": "showSeconds",
+				"label": "Show seconds",
+				"defaultValue": false
+			},
+			{
+				"type": "toggle",
 				"appKey": "largeFont",
 				"label": "Use large weather font",
-				"defaultValue": false
+				"defaultValue": false,
 			},
 		]
 	},

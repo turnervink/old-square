@@ -18,6 +18,7 @@
 #define KEY_LANGUAGE 14
 #define KEY_READY 15
 #define KEY_LARGE_FONT 16
+#define KEY_SHOW_SECONDS 17
 
 Window *main_window;
 
@@ -33,6 +34,7 @@ bool reflect_batt;
 bool euro_date;
 bool large_font;
 bool picked_font;
+bool show_seconds;
 
 // App message setup
 void init_appmessage();
@@ -52,12 +54,14 @@ void set_background_color(int bgcolor);
 void inverter();
 
 // Weather TextLayers
-TextLayer *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated;
+TextLayer *time_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated;
 
 // Weather GFonts
-GFont weather_font, bt_font;
+GFont weather_font, bt_font, date_font, time_font, small_time_font;
 
 // Update functions
 void update_layers();
 void update_time();
 void update_weather();
+
+void tick_handler(struct tm *tick_time, TimeUnits units_changed);

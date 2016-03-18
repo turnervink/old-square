@@ -54,6 +54,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   Tuple *date_format_tup = dict_find(iter, KEY_DATE_FORMAT); // cstring
   Tuple *lang_tup = dict_find(iter, KEY_LANGUAGE); // cstring
 	Tuple *largefont_tup = dict_find(iter, KEY_LARGE_FONT); // int8
+	Tuple *showseconds_tup = dict_find(iter, KEY_SHOW_SECONDS); // int8
 	
 
   if (ready_tup) { // Wait for JS to be ready before requesting weather in selected language
@@ -93,8 +94,6 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
     persist_write_int(KEY_TEXT_COLOR, text_color);
     #ifdef PBL_COLOR
     	set_text_color(text_color);
-    #else
-
     #endif
   }
 
@@ -105,8 +104,6 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	persist_write_int(KEY_BACKGROUND_COLOR, bg_color);
   	#ifdef PBL_COLOR
     	set_background_color(bg_color);
-    #else
-
     #endif
   }
 
@@ -166,11 +163,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
 		text_layer_set_text(conditions_layer, conditions_buffer);
 		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
-		//text_layer_set_text(conditions_layer, "This is some placeholder text");
-		//text_layer_set_text(conditions_layer_unanimated, "This is some placeholder text");
 
 		GSize cond_size = text_layer_get_content_size(conditions_layer);
-		GSize conds_size = text_layer_get_content_size(conditions_layer_unanimated);
 		GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 
 		layer_set_frame(text_layer_get_layer(conditions_layer), GRect(0, 182, bounds.size.w, cond_size.h)); 
@@ -191,14 +185,6 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using Celsius and getting temp size");
   	text_layer_set_text(temp_layer, temp_c_buffer);
   	text_layer_set_text(temp_layer_unanimated, temp_c_buffer);
-		
-		/*GSize temp_size = text_layer_get_content_size(temp_layer);
-		GSize temps_size = text_layer_get_content_size(temp_layer_unanimated);
-		GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
-		APP_LOG(APP_LOG_LEVEL_INFO, "Temp size is %d", temp_size.h);
-		
-		layer_set_frame(text_layer_get_layer(temp_layer), GRect(0, -32, bounds.size.w, 18));
-		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w,  18));*/
   } else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using Fahrenheit and getting temp size");
   	text_layer_set_text(temp_layer, temp_buffer);
@@ -248,7 +234,33 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		}
 
 			layer_mark_dirty(text_layer_get_layer(conditions_layer));
+	}
+	
+	if (showseconds_tup) {
+		show_seconds = showseconds_tup->value->int8;
+		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_SECONDS received! - %d", show_seconds);
+		
+		if (show_seconds == 1) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Subscribing to seconds");
+			tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+		} else {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Subscribing to minutes");
+			tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
 		}
+		
+		if (show_seconds == 1) {
+			text_layer_set_font(time_layer, small_time_font);
+		} else {
+			text_layer_set_font(time_layer, time_font);
+		}
+		
+		persist_write_int(KEY_SHOW_SECONDS, show_seconds);
+		
+		layer_mark_dirty(text_layer_get_layer(time_layer));
+		GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
+		GSize time_size = text_layer_get_content_size(time_layer);
+		layer_set_frame(text_layer_get_layer(time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, time_size.h));
+	}
 
   update_layers();
   update_time();
