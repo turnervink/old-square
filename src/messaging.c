@@ -128,6 +128,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	use_celsius = use_celsius_tup->value->int8;
 
   	persist_write_int(KEY_USE_CELSIUS, use_celsius);
+		
+		vibes_short_pulse();
   }
 
   if (shake_for_weather_tup) {

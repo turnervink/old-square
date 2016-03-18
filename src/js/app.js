@@ -1,3 +1,8 @@
+var Clay = require("clay");
+var clayConfig = require("config");
+var customClay = require("custom-clay");
+var clay = new Clay(clayConfig, customClay);
+
 var xhrRequest = function (url, type, callback) {
   var xhr = new XMLHttpRequest();
   xhr.onload = function () {
@@ -107,7 +112,7 @@ Pebble.addEventListener('appmessage',
 
 // ========== CONFIGURATION ========== //
 
-Pebble.addEventListener('showConfiguration', function() {
+/*Pebble.addEventListener('showConfiguration', function() {
   var url = 'http://turnervink.github.io/square-config/';
 
   console.log('Showing configuration page: ' + url);
@@ -145,4 +150,4 @@ Pebble.addEventListener('webviewclosed', function(e) {
 			console.log(e);
     });
   }
-});
+});*/
