@@ -54,7 +54,7 @@ module.exports = [
 				"type": "select",
 				"appKey": "dateFormat",
 				"defaultValue": "sdate",
-				"label": "Date Format",
+				"label": "Date format",
 				"options": [
 					{
 						"label": "Thu Oct 15",
@@ -73,6 +73,43 @@ module.exports = [
 		"items": [
 			{
 				"type": "heading",
+				"id": "appearance-heading",
+				"defaultValue": "Appearance",
+				"size": 4
+			},
+			{
+				"type": "color",
+				"appKey": "backgroundColor",
+				"defaultValue": "000000",
+				"label": "Background colour",
+				"sunlight": true,
+			},
+			{
+				"type": "color",
+				"appKey": "textColor",
+				"defaultValue": "00ff00",
+				"label": "Text colour",
+				"sunlight": true,
+			},
+			{
+				"type": "toggle",
+				"appKey": "invertColors",
+				"label": "Invert colours",
+				"defaultValue": false
+			},
+			{
+				"type": "toggle",
+				"appKey": "reflectBatt",
+				"label": "Bar shows battery level",
+				"defaultValue": true
+			},
+		]
+	},
+	{
+		"type": "section",
+		"items": [
+			{
+				"type": "heading",
 				"id": "weather-heading",
 				"defaultValue": "Weather",
 				"size": 4
@@ -80,7 +117,7 @@ module.exports = [
 			{
 				"type": "toggle",
 				"appKey": "showWeather",
-				"label": "Show Weather",
+				"label": "Show weather",
 				"defaultValue": true
 			},
 			{
@@ -114,51 +151,14 @@ module.exports = [
 			},
 			{
 				"type": "toggle",
-				"appKey": "vibeConnect",
-				"label": "Vibrate on Bluetooth Reconnect",
-				"defaultValue": true
-			},
-			{
-				"type": "toggle",
 				"appKey": "vibeDisconnect",
-				"label": "Vibrate on Bluetooth Disconnect",
-				"defaultValue": true
-			}
-		]
-	},
-	{
-		"type": "section",
-		"items": [
-			{
-				"type": "heading",
-				"id": "appearance-heading",
-				"defaultValue": "Appearance",
-				"size": 4
-			},
-			{
-				"type": "toggle",
-				"appKey": "reflectBatt",
-				"label": "Bar shows battery level",
+				"label": "Vibrate on disconnect",
 				"defaultValue": true
 			},
 			{
-				"type": "color",
-				"appKey": "backgroundColor",
-				"defaultValue": "000000",
-				"label": "Background Color",
-				"sunlight": false,
-			},
-			{
-				"type": "color",
-				"appKey": "textColor",
-				"defaultValue": "00ff00",
-				"label": "Text Color",
-				"sunlight": false,
-			},
-			{
 				"type": "toggle",
-				"appKey": "invertColors",
-				"label": "Invert Colors",
+				"appKey": "vibeConnect",
+				"label": "Vibrate on reconnect",
 				"defaultValue": false
 			}
 		]
