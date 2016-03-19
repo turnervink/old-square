@@ -23,6 +23,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   static char temp_buffer[15];
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
+	
+	//static bool weather_needs_update;
 
   Tuple *ready_tup = dict_find(iter, KEY_READY); // cstring
 
@@ -125,15 +127,6 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 
 		size_weather_layers();
   }
-	
-	if (show_weather_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
-
-  	show_weather = show_weather_tup->value->int8;
-
-  	persist_write_int(KEY_SHOW_WEATHER, show_weather);
-  }
-
 	
 	if (largefont_tup) {
 		large_font = largefont_tup->value->int8;
@@ -249,6 +242,20 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	//sendLang(lang_tup->value->cstring);
 
   	persist_write_int(KEY_LANGUAGE, lang);
+  }
+	
+	if (show_weather_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
+		
+		bool old_show_weather = show_weather;
+
+  	show_weather = show_weather_tup->value->int8;
+		
+		if (old_show_weather == 0 && show_weather == 1) {
+			update_weather();
+		}
+
+  	persist_write_int(KEY_SHOW_WEATHER, show_weather);
   }
 	
 	APP_LOG(APP_LOG_LEVEL_INFO, "All keys received");
