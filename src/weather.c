@@ -20,14 +20,17 @@ void animate_layers() {
 	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 	GSize cond_size = text_layer_get_content_size(conditions_layer);
 	GSize temp_size = text_layer_get_content_size(temp_layer);
+	GRect time_frame = layer_get_frame(text_layer_get_layer(time_layer));
+	GSize date_size = text_layer_get_content_size(date_layer);
+	GRect date_frame = layer_get_frame(text_layer_get_layer(date_layer));
 	
 	GRect temp_offscreen = GRect(0, -32, bounds.size.w, temp_size.h);
-	GRect temp_onscreen_small = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
-	GRect temp_onscreen_large = GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, temp_size.h);
+	GRect temp_onscreen_small = GRect(0, PBL_IF_ROUND_ELSE(time_frame.origin.y - 4, 0), bounds.size.w, temp_size.h);
+	GRect temp_onscreen_large = GRect(0, PBL_IF_ROUND_ELSE(time_frame.origin.y - 8, 0), bounds.size.w, temp_size.h);
 	
 	GRect conditions_offscreen = GRect(0, bounds.size.h + cond_size.h, bounds.size.w, cond_size.h);
-	GRect conditions_onscreen_small = GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h);
-	GRect conditions_onscreen_large = GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h);
+	GRect conditions_onscreen_small =GRect(0, PBL_IF_ROUND_ELSE(date_frame.origin.y + date_size.h, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h);
+	GRect conditions_onscreen_large = GRect(0, PBL_IF_ROUND_ELSE(date_frame.origin.y + date_size.h, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h);
 	
 	if (large_font == 0) {
 		// Temp moves in from top
@@ -52,6 +55,9 @@ void size_weather_layers() {
 	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 	GSize cond_size = text_layer_get_content_size(conditions_layer);
 	GSize temp_size = text_layer_get_content_size(temp_layer);
+	GRect time_frame = layer_get_frame(text_layer_get_layer(time_layer));
+	GSize date_size = text_layer_get_content_size(date_layer);
+	GRect date_frame = layer_get_frame(text_layer_get_layer(date_layer));
 	
 	if (show_weather == 0) {
 		return;
@@ -59,16 +65,16 @@ void size_weather_layers() {
 	
 	if (large_font == 0) { // If we're using the small font
 		layer_set_frame(text_layer_get_layer(temp_layer), GRect(0, -32, bounds.size.w, temp_size.h)); // Keep animated layers off screen
-		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h)); // Place temp at the end of the animation
+		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(time_frame.origin.y - 4, 0), bounds.size.w, temp_size.h)); // Place temp at the end of the animation
 		
 		layer_set_frame(text_layer_get_layer(conditions_layer), GRect(0, bounds.size.h + cond_size.h, bounds.size.w, cond_size.h));
-		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h)); // Place conditions at the end of the animation
+		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(date_frame.origin.y + date_size.h, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h)); // Place conditions at the end of the animation
 	} else { // Do the same as above but take into account the larger font
 		layer_set_frame(text_layer_get_layer(temp_layer), GRect(0, -32, bounds.size.w, temp_size.h));
-		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, temp_size.h));
+		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(time_frame.origin.y - 8, 0), bounds.size.w, temp_size.h));
 		
 		layer_set_frame(text_layer_get_layer(conditions_layer), GRect(0, bounds.size.h + cond_size.h, bounds.size.w, cond_size.h));
-		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h));
+		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(date_frame.origin.y + date_size.h, bounds.size.h - cond_size.h - 5), bounds.size.w, cond_size.h));
 	}
 	
 	layer_mark_dirty(text_layer_get_layer(conditions_layer));

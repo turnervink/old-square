@@ -5,8 +5,8 @@
 	
 Window *main_window;
 
-static TextLayer *date_layer, *bluetooth_layer;
-TextLayer *time_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated, *charge_layer;
+static TextLayer *bluetooth_layer;
+TextLayer *time_layer, *date_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated, *charge_layer;
 
 GFont weather_font, bt_font, date_font, time_font, small_time_font;
 
@@ -155,12 +155,6 @@ void update_layers() {
 		layer_set_hidden(static_layer, false);
 		layer_set_hidden(batt_layer, true);
   }
-	
-	if (shake_for_weather == 0 && show_seconds == 1) {
-		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, cond_size.h));
-	} else {
-		layer_set_frame(text_layer_get_layer(temp_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, cond_size.h));
-	}
 }
 
 void set_text_color(int color) {
