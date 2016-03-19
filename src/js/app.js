@@ -145,12 +145,17 @@ Pebble.addEventListener('webviewclosed', function(e) {
 	localStorage.show_weather = show_weather;
 
   // Send settings values to watch side
-  Pebble.sendAppMessage(dict, function(e) {
-    console.log('Sent config data to Pebble');
-  }, function(e) {
-    console.log('Failed to send config data!');
-    console.log(JSON.stringify(e));
-  });
+  /*Pebble.sendAppMessage(dict, 
+		function(e) {
+    	console.log("Config messaged ACK'd");
+			console.log("ACK: " + e);
+  	}, 
+		function(e) {
+    	console.log('Failed to send config data!');
+			console.log("NACK: " + e);
+  	}
+	);*/
+	
 });
 
 // ========== CONFIGURATION ========== //
