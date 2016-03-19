@@ -154,6 +154,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
 		text_layer_set_text(conditions_layer, conditions_buffer);
 		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
+		text_layer_set_text(conditions_layer, "Filler text filler text filler");
+		text_layer_set_text(conditions_layer_unanimated, "Filler text filler text filler");
 
 		size_weather_layers();
   }
