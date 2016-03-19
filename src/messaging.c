@@ -116,9 +116,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		large_font = largefont_tup->value->int8;
 		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LARGE_FONT received! - %d", large_font);
 		
-		persist_write_int(KEY_LARGE_FONT, large_font);
-		
-		
+		persist_write_int(KEY_LARGE_FONT, large_font);	
 		
 		if (large_font == 1) {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
@@ -126,21 +124,16 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 			text_layer_set_font(temp_layer, weather_font);
 			text_layer_set_font(conditions_layer_unanimated, weather_font);
 			text_layer_set_font(temp_layer_unanimated, weather_font);
-			GSize cond_size = text_layer_get_content_size(conditions_layer);
-			GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
-			layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
 		} else {
 			APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
 			text_layer_set_font(conditions_layer, bt_font);
 			text_layer_set_font(temp_layer, bt_font);
 			text_layer_set_font(conditions_layer_unanimated, bt_font);
 			text_layer_set_font(temp_layer_unanimated, bt_font);
-			GSize cond_size = text_layer_get_content_size(conditions_layer);
-			GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
-			layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
 		}
 
-			layer_mark_dirty(text_layer_get_layer(conditions_layer));
+		size_weather_layers();
+		layer_mark_dirty(text_layer_get_layer(conditions_layer));
 	}
 
   if (temperature_tup) {
@@ -162,13 +155,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		text_layer_set_text(conditions_layer, conditions_buffer);
 		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
 
-		GSize cond_size = text_layer_get_content_size(conditions_layer);
-		GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
-		
-		APP_LOG(APP_LOG_LEVEL_INFO, "Conditions height is: %d", cond_size.h);
-
-		layer_set_frame(text_layer_get_layer(conditions_layer), GRect(0, 182, bounds.size.w, cond_size.h)); 
-		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
+		size_weather_layers();
   }
 
   if (vibe_on_connect_tup) {

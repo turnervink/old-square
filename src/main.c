@@ -53,46 +53,6 @@ void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int 
     animation_schedule((Animation*) anim);
 }
 
-static void animate_layers() {
-	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
-	GSize cond_size = text_layer_get_content_size(conditions_layer);
-	GSize temp_size = text_layer_get_content_size(temp_layer);
-	
-	
-
-	// Weather moves in from bottom
-	GRect wins = GRect(0, bounds.size.h + cond_size.h, bounds.size.w, cond_size.h);
-	GRect winf = GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h);
-	
-	animate_layer(text_layer_get_layer(conditions_layer), &wins, &winf, 1000, 0);
-
-	GRect wouts = GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h);
-	GRect woutf = GRect(0, bounds.size.h + 10, bounds.size.w, cond_size.h);
-	
-	animate_layer(text_layer_get_layer(conditions_layer), &wouts, &woutf, 1000, 5000);
-
-	// Temp moves in from top
-	GRect tins = GRect(0, -32, bounds.size.w, temp_size.h);
-	GRect tinf;
-	if (show_seconds == 1) {
-		tinf = GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, temp_size.h);
-	} else {
-		tinf = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
-	}
-	
-	animate_layer(text_layer_get_layer(temp_layer), &tins, &tinf, 1000, 0);
-
-	GRect touts;
-	if (show_seconds == 1) {
-		touts = GRect(0, PBL_IF_ROUND_ELSE(50, 0), bounds.size.w, temp_size.h);
-	} else {
-		touts = GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, temp_size.h);
-	}
-	GRect toutf = GRect(0, -32, bounds.size.w, temp_size.h);
-	
-	animate_layer(text_layer_get_layer(temp_layer), &touts, &toutf, 1000, 5000);
-}
-
 static void bluetooth_handler(bool connected) {
 	if (!connected) {
 		layer_set_hidden(text_layer_get_layer(bluetooth_layer), false);
@@ -351,7 +311,7 @@ static void main_window_load(Window *window) {
 	text_layer_set_text_alignment(temp_layer_unanimated, GTextAlignmentCenter);
 
 	// Conditions unanimated
-	conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 40, 150), bounds.size.w, 14));
+	conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, 150), bounds.size.w, 14));
 	text_layer_set_overflow_mode(conditions_layer_unanimated, GTextOverflowModeWordWrap);
 	text_layer_set_background_color(conditions_layer_unanimated, GColorClear);
 	text_layer_set_text_alignment(conditions_layer_unanimated, GTextAlignmentCenter);
