@@ -104,13 +104,36 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	persist_write_int(KEY_SHAKE_FOR_WEATHER, shake_for_weather);
   }
 
-  if (show_weather_tup) {
+  if (temperature_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE received!");
+
+  	snprintf(temp_buffer, sizeof(temp_buffer), "%d°", (int)temperature_tup->value->int32);
+  }
+
+  if (temperature_in_c_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE_IN_C received!");
+
+  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d°", (int)temperature_in_c_tup->value->int32);
+  }
+
+  if (conditions_tup) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
+
+		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
+		text_layer_set_text(conditions_layer, conditions_buffer);
+		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
+
+		size_weather_layers();
+  }
+	
+	if (show_weather_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
 
   	show_weather = show_weather_tup->value->int8;
 
   	persist_write_int(KEY_SHOW_WEATHER, show_weather);
   }
+
 	
 	if (largefont_tup) {
 		large_font = largefont_tup->value->int8;
@@ -135,30 +158,6 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		size_weather_layers();
 		layer_mark_dirty(text_layer_get_layer(conditions_layer));
 	}
-
-  if (temperature_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE received!");
-
-  	snprintf(temp_buffer, sizeof(temp_buffer), "%d°", (int)temperature_tup->value->int32);
-  }
-
-  if (temperature_in_c_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE_IN_C received!");
-
-  	snprintf(temp_c_buffer, sizeof(temp_c_buffer), "%d°", (int)temperature_in_c_tup->value->int32);
-  }
-
-  if (conditions_tup) {
-		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CONDITIONS received!");
-
-		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
-		text_layer_set_text(conditions_layer, conditions_buffer);
-		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
-		text_layer_set_text(conditions_layer, "Filler text filler text filler");
-		text_layer_set_text(conditions_layer_unanimated, "Filler text filler text filler");
-
-		size_weather_layers();
-  }
 
   if (vibe_on_connect_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_CONNECT received!");
@@ -247,12 +246,12 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	} else {
   		lang = 0;
   	}
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
   	//sendLang(lang_tup->value->cstring);
 
   	persist_write_int(KEY_LANGUAGE, lang);
-		update_weather();
   }
+	
+	APP_LOG(APP_LOG_LEVEL_INFO, "All keys received");
 
   update_layers();
   update_time();
