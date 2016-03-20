@@ -289,23 +289,23 @@ static void main_window_load(Window *window) {
 	// ========== WEATHER LAYERS ========== //
 
 	// Temperature
-	temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 18));
+	temp_layer = text_layer_create(GRect(0, -32, bounds.size.w, 50));
 	text_layer_set_background_color(temp_layer, GColorClear);
 	text_layer_set_text_alignment(temp_layer, GTextAlignmentCenter);
 
 	// Conditions
-	conditions_layer = text_layer_create(GRect(0, 182, bounds.size.w, 14));
+	conditions_layer = text_layer_create(GRect(0, 182, bounds.size.w, 50));
 	text_layer_set_overflow_mode(conditions_layer, GTextOverflowModeWordWrap);
 	text_layer_set_background_color(conditions_layer, GColorClear);
 	text_layer_set_text_alignment(conditions_layer, GTextAlignmentCenter);
 
 	// Temperature unanimated
-	temp_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 18));
+	temp_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(40, 0), bounds.size.w, 50));
 	text_layer_set_background_color(temp_layer_unanimated, GColorClear);
 	text_layer_set_text_alignment(temp_layer_unanimated, GTextAlignmentCenter);
 
 	// Conditions unanimated
-	conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, 150), bounds.size.w, 14));
+	conditions_layer_unanimated = text_layer_create(GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, 150), bounds.size.w, 50));
 	text_layer_set_overflow_mode(conditions_layer_unanimated, GTextOverflowModeWordWrap);
 	text_layer_set_background_color(conditions_layer_unanimated, GColorClear);
 	text_layer_set_text_alignment(conditions_layer_unanimated, GTextAlignmentCenter);

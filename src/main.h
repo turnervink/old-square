@@ -63,7 +63,7 @@ GFont weather_font, bt_font, date_font, time_font, small_time_font;
 void update_layers();
 void update_time();
 void update_weather();
-void size_weather_layers();
+void size_weather_layers(int called_from);
 void animate_layers();
 void animate_layer();
 

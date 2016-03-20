@@ -58,13 +58,15 @@ void animate_layers() {
 	}
 }
 
-void size_weather_layers() {
+void size_weather_layers(int called_from) {
+	APP_LOG(APP_LOG_LEVEL_INFO, "Sizing weather layers, called from: %d", called_from);
 	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
 	GSize cond_size = text_layer_get_content_size(conditions_layer);
 	GSize temp_size = text_layer_get_content_size(temp_layer);
 	GRect time_frame = layer_get_frame(text_layer_get_layer(time_layer));
 	GSize date_size = text_layer_get_content_size(date_layer);
 	GRect date_frame = layer_get_frame(text_layer_get_layer(date_layer));
+	APP_LOG(APP_LOG_LEVEL_INFO, "Conditions height: %d", cond_size.h);
 	
 	if (show_weather == 0) {
 		return;

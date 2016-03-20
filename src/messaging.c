@@ -124,8 +124,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
 		text_layer_set_text(conditions_layer, conditions_buffer);
 		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
-
-		size_weather_layers();
+		
+		size_weather_layers(1);
   }
 	
 	if (largefont_tup) {
@@ -147,9 +147,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 			text_layer_set_font(conditions_layer_unanimated, bt_font);
 			text_layer_set_font(temp_layer_unanimated, bt_font);
 		}
-
-		size_weather_layers();
-		layer_mark_dirty(text_layer_get_layer(conditions_layer));
+		
+		size_weather_layers(2);
 	}
 
   if (vibe_on_connect_tup) {
@@ -192,9 +191,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   		euro_date = 0;
   		persist_write_int(KEY_DATE_FORMAT, euro_date);
   	}
-  }
-	
-	
+  }	
 	
 	if (showseconds_tup) {
 		show_seconds = showseconds_tup->value->int8;
