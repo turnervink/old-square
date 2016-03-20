@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "main.h"
 #include "languages.h"
 
 /*
@@ -34,3 +35,16 @@ char* langCodes[4] = {
 	"es",
 	"de"
 };
+
+void sendLang(char* lang) { // Send selected language to JS to fetch weather
+	APP_LOG(APP_LOG_LEVEL_INFO, "Sending lang to JS - %s", lang);
+	// Begin dictionary
+	DictionaryIterator *iter;
+	app_message_outbox_begin(&iter);
+
+	// Add a key-value pair
+	dict_write_cstring(iter, 14, lang); // Key 14 is KEY_LANGUAGE
+
+	// Send the message!
+	app_message_outbox_send();
+}

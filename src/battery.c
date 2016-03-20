@@ -29,7 +29,7 @@ void batt_layer_draw(Layer *layer, GContext *ctx) {
     		GColor fill_color = GColorFromHEX(text_color);
 			graphics_context_set_fill_color(ctx, fill_color); // Make the remaining battery that colour
 		} else {
-			graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
+			graphics_context_set_fill_color(ctx, GColorFromHEX(0x00ff00)); // Otherwise, default to white
 		}
 	#else // If on aplite
 		if (persist_exists(KEY_INVERT_COLORS)) { // Check for invert setting

@@ -2,19 +2,6 @@
 #include "main.h"
 #include "languages.h"
 
-void sendLang(char* lang) { // Send selected language to JS to fetch weather
-	APP_LOG(APP_LOG_LEVEL_INFO, "Sending lang to JS - %s", lang);
-	// Begin dictionary
-	DictionaryIterator *iter;
-	app_message_outbox_begin(&iter);
-
-	// Add a key-value pair
-	dict_write_cstring(iter, 14, lang); // Key 14 is KEY_LANGUAGE
-
-	// Send the message!
-	app_message_outbox_send();
-}
-
 void init_appmessage() {
 	APP_LOG(APP_LOG_LEVEL_INFO, "Opening app message inbox");
 	
@@ -36,6 +23,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   static char temp_buffer[15];
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
+	
+	//static bool weather_needs_update;
 
   Tuple *ready_tup = dict_find(iter, KEY_READY); // cstring
 
@@ -61,31 +50,11 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "JS reports ready");
   	ready = 1;
 
-  	sendLang(langCodes[lang]);
+  	//sendLang(langCodes[lang]);
+		update_weather();
   }
 
-  if (lang_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	if (strcmp(lang_tup->value->cstring, "en") == 0) {
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
-  		lang = 0;
-  	} else if (strcmp(lang_tup->value->cstring, "fr") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
-  		lang = 1;
-  	} else if (strcmp(lang_tup->value->cstring, "es") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
-  		lang = 2;
-  	} else if (strcmp(lang_tup->value->cstring, "de") == 0){
-  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
-  		lang = 3;
-  	} else {
-  		lang = 0;
-  	}
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
-  	sendLang(lang_tup->value->cstring);
-
-  	persist_write_int(KEY_LANGUAGE, lang);
-  }
+  
 
   if (text_color_tup) {
     int text_color = text_color_tup->value->int32;
@@ -137,14 +106,6 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	persist_write_int(KEY_SHAKE_FOR_WEATHER, shake_for_weather);
   }
 
-  if (show_weather_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
-
-  	show_weather = show_weather_tup->value->int8;
-
-  	persist_write_int(KEY_SHOW_WEATHER, show_weather);
-  }
-
   if (temperature_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEMPERATURE received!");
 
@@ -163,13 +124,32 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", conditions_tup->value->cstring);
 		text_layer_set_text(conditions_layer, conditions_buffer);
 		text_layer_set_text(conditions_layer_unanimated, conditions_buffer);
-
-		GSize cond_size = text_layer_get_content_size(conditions_layer);
-		GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
-
-		layer_set_frame(text_layer_get_layer(conditions_layer), GRect(0, 182, bounds.size.w, cond_size.h)); 
-		layer_set_frame(text_layer_get_layer(conditions_layer_unanimated), GRect(0, PBL_IF_ROUND_ELSE(bounds.size.h - 55, (bounds.size.h - cond_size.h) - 5), bounds.size.w, cond_size.h));
+		
+		size_weather_layers(1);
   }
+	
+	if (largefont_tup) {
+		large_font = largefont_tup->value->int8;
+		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LARGE_FONT received! - %d", large_font);
+		
+		persist_write_int(KEY_LARGE_FONT, large_font);	
+		
+		if (large_font == 1) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
+			text_layer_set_font(conditions_layer, weather_font);
+			text_layer_set_font(temp_layer, weather_font);
+			text_layer_set_font(conditions_layer_unanimated, weather_font);
+			text_layer_set_font(temp_layer_unanimated, weather_font);
+		} else {
+			APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
+			text_layer_set_font(conditions_layer, bt_font);
+			text_layer_set_font(temp_layer, bt_font);
+			text_layer_set_font(conditions_layer_unanimated, bt_font);
+			text_layer_set_font(temp_layer_unanimated, bt_font);
+		}
+		
+		size_weather_layers(2);
+	}
 
   if (vibe_on_connect_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_VIBE_ON_CONNECT received!");
@@ -211,30 +191,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   		euro_date = 0;
   		persist_write_int(KEY_DATE_FORMAT, euro_date);
   	}
-  }
-	
-	if (largefont_tup) {
-		large_font = largefont_tup->value->int8;
-		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LARGE_FONT received! - %d", large_font);
-		
-		persist_write_int(KEY_LARGE_FONT, large_font);
-		
-		if (large_font == 1) {
-			APP_LOG(APP_LOG_LEVEL_INFO, "Using large font");
-			text_layer_set_font(conditions_layer, weather_font);
-			text_layer_set_font(temp_layer, weather_font);
-			text_layer_set_font(conditions_layer_unanimated, weather_font);
-			text_layer_set_font(temp_layer_unanimated, weather_font);
-		} else {
-			APP_LOG(APP_LOG_LEVEL_INFO, "Using small font");
-			text_layer_set_font(conditions_layer, bt_font);
-			text_layer_set_font(temp_layer, bt_font);
-			text_layer_set_font(conditions_layer_unanimated, bt_font);
-			text_layer_set_font(temp_layer_unanimated, bt_font);
-		}
-
-			layer_mark_dirty(text_layer_get_layer(conditions_layer));
-	}
+  }	
 	
 	if (showseconds_tup) {
 		show_seconds = showseconds_tup->value->int8;
@@ -261,13 +218,51 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		GSize time_size = text_layer_get_content_size(time_layer);
 		layer_set_frame(text_layer_get_layer(time_layer), GRect(0, ((bounds.size.h / 2) + 5 - time_size.h), bounds.size.w, time_size.h));
 	}
+	
+	if (lang_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_LANGUAGE received!");
+  	if (strcmp(lang_tup->value->cstring, "en") == 0) {
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using English");
+  		lang = 0;
+  	} else if (strcmp(lang_tup->value->cstring, "fr") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using French");
+  		lang = 1;
+  	} else if (strcmp(lang_tup->value->cstring, "es") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using Spanish");
+  		lang = 2;
+  	} else if (strcmp(lang_tup->value->cstring, "de") == 0){
+  		APP_LOG(APP_LOG_LEVEL_INFO, "Using German");
+  		lang = 3;
+  	} else {
+  		lang = 0;
+  	}
+  	//sendLang(lang_tup->value->cstring);
+
+  	persist_write_int(KEY_LANGUAGE, lang);
+  }
+	
+	if (show_weather_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_SHOW_WEATHER received!");
+		
+		bool old_show_weather = show_weather;
+
+  	show_weather = show_weather_tup->value->int8;
+		
+		if (old_show_weather == 0 && show_weather == 1) {
+			update_weather();
+		}
+
+  	persist_write_int(KEY_SHOW_WEATHER, show_weather);
+  }
+	
+	APP_LOG(APP_LOG_LEVEL_INFO, "All keys received");
 
   update_layers();
   update_time();
 }
 
 void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped! - %d", reason);
 }
 
 void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {

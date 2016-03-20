@@ -103,6 +103,12 @@ module.exports = [
 				"label": "Bar shows battery level",
 				"defaultValue": true
 			},
+			{
+				"type": "toggle",
+				"appKey": "showSeconds",
+				"label": "Show seconds",
+				"defaultValue": false
+			}
 		]
 	},
 	{
@@ -131,12 +137,6 @@ module.exports = [
 				"appKey": "shakeWeather",
 				"label": "Shake for weather",
 				"defaultValue": true
-			},
-			{
-				"type": "toggle",
-				"appKey": "showSeconds",
-				"label": "Show seconds",
-				"defaultValue": false
 			},
 			{
 				"type": "toggle",
