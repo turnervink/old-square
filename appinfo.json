@@ -31,19 +31,7 @@
         "media": [
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_34",
-                "targetPlatforms": null,
-                "type": "font"
-            },
-            {
-                "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_14",
-                "targetPlatforms": null,
-                "type": "font"
-            },
-            {
-                "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_26",
+                "name": "FONT_SQUARE_18",
                 "targetPlatforms": null,
                 "type": "font"
             },
@@ -55,7 +43,19 @@
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_18",
+                "name": "FONT_SQUARE_26",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_14",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_34",
                 "targetPlatforms": null,
                 "type": "font"
             }
