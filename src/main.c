@@ -122,7 +122,8 @@ void health_handler(HealthEventType event, void *contect) {
 	
 	if (mask & HealthServiceAccessibilityMaskAvailable) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Step data available!");
-		steps = steps = health_service_sum_today(HealthMetricStepCount);
+		steps = health_service_sum_today(HealthMetricStepCount);
+		APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", steps);
 	} else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Step data unavailable");
 	}

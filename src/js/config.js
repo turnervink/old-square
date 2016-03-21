@@ -151,6 +151,17 @@ module.exports = [
 		"items": [
 			{
 				"type": "heading",
+				"id": "health-heading",
+				"defaultValue": "Pebble Health",
+				"size": 4
+			}
+		]
+	},
+	{
+		"type": "section",
+		"items": [
+			{
+				"type": "heading",
 				"id": "bluetooth-heading",
 				"defaultValue": "Bluetooth",
 				"size": 4
