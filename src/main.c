@@ -1,7 +1,7 @@
 #include <pebble.h>
 #include "languages.h"
 #include "main.h"
-#include "battery.h"
+#include "bar.h"
 	
 Window *main_window;
 
@@ -11,7 +11,7 @@ TextLayer *time_layer, *date_layer, *temp_layer, *conditions_layer, *temp_layer_
 GFont weather_font, bt_font, date_font, time_font, small_time_font;
 
 static Layer  *weather_layer, *weather_layer_unanimated;
-Layer *batt_layer, *static_layer;
+Layer *bar_layer, *static_layer;
 
 static GBitmap *bt_icon;
 
@@ -171,14 +171,16 @@ void update_layers() {
 			layer_set_hidden(weather_layer_unanimated, true);
 		}
 	}
+	
+	layer_mark_dirty(bar_layer);
 
-	if (reflect_batt == 1) {
+	/*if (reflect_batt == 1) {
 		layer_set_hidden(static_layer, true);
-		layer_set_hidden(batt_layer, false);
+		layer_set_hidden(bar_layer, false);
   } else {
 		layer_set_hidden(static_layer, false);
-		layer_set_hidden(batt_layer, true);
-  }
+		layer_set_hidden(bar_layer, true);
+  }*/
 }
 
 void set_text_color(int color) {
@@ -240,8 +242,8 @@ static void main_window_load(Window *window) {
 	weather_layer_unanimated = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	
 	// Battery bar
-	batt_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	layer_set_update_proc(batt_layer, batt_layer_draw);
+	bar_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	layer_set_update_proc(bar_layer, bar_layer_draw);
 
 	// Static bar
 	static_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
@@ -335,7 +337,7 @@ static void main_window_load(Window *window) {
 	// ========== ADD CHILDREN ========== //
 
 	// Main elements
-	layer_add_child(window_get_root_layer(window), batt_layer);
+	layer_add_child(window_get_root_layer(window), bar_layer);
 	layer_add_child(window_get_root_layer(window), static_layer);
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(time_layer));
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(date_layer));
@@ -399,14 +401,14 @@ static void main_window_load(Window *window) {
 
   	  if (reflect_batt == 1) {
   			layer_set_hidden(static_layer, true);
-  			layer_set_hidden(batt_layer, false);
+  			layer_set_hidden(bar_layer, false);
   		} else {
   			layer_set_hidden(static_layer, false);
-  			layer_set_hidden(batt_layer, true);
+  			layer_set_hidden(bar_layer, true);
   		}
   	} else {
   		layer_set_hidden(static_layer, true);
-  		layer_set_hidden(batt_layer, false);
+  		layer_set_hidden(bar_layer, false);
   	}
 
   	if (persist_exists(KEY_SHOW_WEATHER)) {
@@ -451,7 +453,7 @@ static void main_window_unload(Window *window) {
 	text_layer_destroy(conditions_layer_unanimated);
 	text_layer_destroy(temp_layer);
 	text_layer_destroy(temp_layer_unanimated);
-	layer_destroy(batt_layer);
+	layer_destroy(bar_layer);
 	layer_destroy(weather_layer);
 	layer_destroy(weather_layer_unanimated);
 
