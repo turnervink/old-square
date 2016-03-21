@@ -6,7 +6,7 @@
 Window *main_window;
 
 static Layer *bluetooth_layer;
-TextLayer *time_layer, *date_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated, *charge_layer;
+TextLayer *time_layer, *date_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated;
 
 GFont weather_font, bt_font, date_font, time_font, small_time_font;
 
@@ -190,7 +190,6 @@ void set_text_color(int color) {
 		text_layer_set_text_color(conditions_layer, text_color);
 		text_layer_set_text_color(temp_layer_unanimated, text_color);
 		text_layer_set_text_color(conditions_layer_unanimated, text_color);
-		text_layer_set_text_color(charge_layer, text_color);
   #endif
 }
 
@@ -210,8 +209,7 @@ void inverter() {
 			text_layer_set_text_color(conditions_layer, GColorBlack);
 			text_layer_set_text_color(temp_layer_unanimated, GColorBlack);
 			text_layer_set_text_color(conditions_layer_unanimated, GColorBlack);
-			text_layer_set_text_color(charge_layer, GColorBlack);
-	    } else {
+	} else {
 	    	window_set_background_color(main_window, GColorBlack);
 			text_layer_set_text_color(time_layer, GColorWhite);
 			text_layer_set_text_color(date_layer, GColorWhite);
@@ -219,8 +217,7 @@ void inverter() {
 			text_layer_set_text_color(conditions_layer, GColorWhite);
 			text_layer_set_text_color(temp_layer_unanimated, GColorWhite);
 			text_layer_set_text_color(conditions_layer_unanimated, GColorWhite);
-			text_layer_set_text_color(charge_layer, GColorWhite);
-	    }
+	}
 }
 
 static void main_window_load(Window *window) {
@@ -291,14 +288,6 @@ static void main_window_load(Window *window) {
 	GSize date_size = text_layer_get_content_size(date_layer);
 	layer_set_frame(text_layer_get_layer(date_layer), GRect(0, (bounds.size.h / 2) + 5, bounds.size.w, bounds.size.h));
 	GRect date_frame = layer_get_frame(text_layer_get_layer(date_layer));
-	
-	// Charging status
-	charge_layer = text_layer_create(GRect(0, (date_frame.origin.y + date_size.h), bounds.size.w, bounds.size.h));
-	text_layer_set_background_color(charge_layer, GColorClear);
-	text_layer_set_font(charge_layer, bt_font);
-	text_layer_set_text_alignment(charge_layer, GTextAlignmentCenter);
-	text_layer_set_text(charge_layer, "CHRG");
-	layer_set_hidden(text_layer_get_layer(charge_layer), true);
 
 	// Bluetooth status
 	bluetooth_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
@@ -352,7 +341,6 @@ static void main_window_load(Window *window) {
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(date_layer));
 
 	// Extra elements
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(charge_layer));
 	layer_add_child(window_get_root_layer(window), bluetooth_layer);
 
 	// Weather elements
@@ -453,14 +441,12 @@ static void main_window_load(Window *window) {
  		} else {
   		layer_set_hidden(bluetooth_layer, true);
  		}
-
-  	charge_handler(); // Is the battery charging?
+	
 }
 
 static void main_window_unload(Window *window) {
 	text_layer_destroy(time_layer);
 	text_layer_destroy(date_layer);
-	text_layer_destroy(charge_layer);
 	text_layer_destroy(conditions_layer);
 	text_layer_destroy(conditions_layer_unanimated);
 	text_layer_destroy(temp_layer);
