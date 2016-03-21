@@ -30,6 +30,7 @@ bool picked_font = 0;
 bool show_seconds = 0;
 
 int lang; // User selected language code
+int steps; // Steps taken
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -112,6 +113,21 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 		}
 	}
 }
+
+#ifdef PBL_HEALTH
+void health_handler(HealthEventType event, void *contect) {
+	time_t start = time_start_of_today();
+	time_t end = time(NULL);
+	HealthServiceAccessibilityMask mask = health_service_metric_accessible(HealthMetricStepCount, start, end);
+	
+	if (mask & HealthServiceAccessibilityMaskAvailable) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Step data available!");
+		steps = steps = health_service_sum_today(HealthMetricStepCount);
+	} else {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Step data unavailable");
+	}
+}
+#endif
 
 void update_time() {
   time_t temp = time(NULL);
@@ -475,6 +491,10 @@ static void init() {
 	battery_state_service_subscribe(battery_handler);
 	accel_tap_service_subscribe(tap_handler);
 	bluetooth_connection_service_subscribe(bluetooth_handler);
+	
+	#ifdef PBL_HEALTH 
+	health_service_events_subscribe(health_handler, NULL);
+	#endif
 	
 	init_appmessage(); // Init appmessage in messaging.c
 }

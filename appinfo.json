@@ -21,7 +21,8 @@
     },
     "capabilities": [
         "location",
-        "configurable"
+        "configurable",
+        "health"
     ],
     "companyName": "Turner Vink",
     "enableMultiJS": true,

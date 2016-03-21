@@ -8,3 +8,5 @@ void bar_layer_draw(Layer *layer, GContext *ctx);
 void static_layer_draw(Layer *layer, GContext *ctx);
 
 int bar_setting;
+int steps;
+int step_goal;
