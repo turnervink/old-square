@@ -30,6 +30,12 @@
     "resources": {
         "media": [
             {
+                "file": "images/ic_bluetooth_disabled_white_18dp.zip",
+                "name": "BT_ICON",
+                "targetPlatforms": null,
+                "type": "bitmap"
+            },
+            {
                 "file": "fonts/square.ttf",
                 "name": "FONT_SQUARE_18",
                 "targetPlatforms": null,
