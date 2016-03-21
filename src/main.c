@@ -72,47 +72,11 @@ static void bluetooth_handler(bool connected) {
 }
 
 static void draw_bt(Layer *layer, GContext *ctx) {
-	/*#ifdef PBL_COLOR
-		if (persist_exists(KEY_TEXT_COLOR)) { // Check for existing colour
-			int text_color = persist_read_int(KEY_TEXT_COLOR);
-			GColor fill_color = GColorFromHEX(text_color);
-			graphics_context_set_stroke_color(ctx, fill_color); // Make the remaining battery that colour
-			graphics_context_set_stroke_width(ctx, 2);
-		} else {
-			graphics_context_set_stroke_color(ctx, GColorFromHEX(0x00ff00)); // Otherwise, default to white
-		}
-	#else
-		if (persist_exists(KEY_INVERT_COLORS)) { // Check for invert setting
-			if (invert_colors == 1) {
-				graphics_context_set_fill_color(ctx, GColorBlack); // If inverted, make the remaining battery black
-			} else {
-				graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
-			}
-		} else {
-				graphics_context_set_fill_color(ctx, GColorWhite); // If no invert setting, default to white
-		}
-	#endif
-	
-	#ifdef PBL_ROUND 
-		graphics_draw_circle(ctx, GPoint(90, 90), 85);
-		graphics_draw_circle(ctx, GPoint(90, 90), 84);
-	#else 
-		graphics_draw_rect(ctx, GRect(0, 0, 144, 168));
-		graphics_draw_rect(ctx, GRect(1, 1, 142, 166));
-	#endif*/
 	graphics_context_set_compositing_mode(ctx, GCompOpSet);
+	
 	#ifdef PBL_COLOR
 		graphics_context_set_fill_color(ctx, GColorBlue);
 	#else
-		/*if (persist_exists(KEY_INVERT_COLORS)) { // Check for invert setting
-			if (invert_colors == 1) {
-				graphics_context_set_fill_color(ctx, GColorBlack); // If inverted, make the remaining battery black
-			} else {
-				graphics_context_set_fill_color(ctx, GColorWhite); // Otherwise, default to white
-			}
-		} else {
-				graphics_context_set_fill_color(ctx, GColorWhite); // If no invert setting, default to white
-		}*/
 		graphics_context_set_fill_color(ctx, GColorBlack);
 	#endif
 	
