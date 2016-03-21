@@ -5,13 +5,15 @@
 	
 Window *main_window;
 
-static TextLayer *bluetooth_layer;
+static Layer *bluetooth_layer;
 TextLayer *time_layer, *date_layer, *temp_layer, *conditions_layer, *temp_layer_unanimated, *conditions_layer_unanimated, *charge_layer;
 
 GFont weather_font, bt_font, date_font, time_font, small_time_font;
 
 static Layer  *weather_layer, *weather_layer_unanimated;
 Layer *batt_layer, *static_layer;
+
+static GBitmap *bt_icon;
 
 // Config options
 bool ready = 0;
@@ -55,16 +57,38 @@ void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int 
 
 static void bluetooth_handler(bool connected) {
 	if (!connected) {
-		layer_set_hidden(text_layer_get_layer(bluetooth_layer), false);
+		APP_LOG(APP_LOG_LEVEL_INFO, "BT disconnected");
+		layer_set_hidden(bluetooth_layer, false);
 		if (vibe_on_disconnect == 1) {
 			vibes_long_pulse();
 		}
 	} else {
-		layer_set_hidden(text_layer_get_layer(bluetooth_layer), true);
+		APP_LOG(APP_LOG_LEVEL_INFO, "BT connected");
+		layer_set_hidden(bluetooth_layer, true);
 		if (vibe_on_connect == 1) {
 			vibes_double_pulse();
 		}
 	}
+}
+
+static void draw_bt(Layer *layer, GContext *ctx) {
+	graphics_context_set_compositing_mode(ctx, GCompOpSet);
+	
+	#ifdef PBL_COLOR
+		graphics_context_set_fill_color(ctx, GColorBlue);
+	#else
+		graphics_context_set_fill_color(ctx, GColorBlack);
+	#endif
+	
+	GRect bounds = layer_get_bounds(window_get_root_layer(main_window));
+	
+	#ifdef PBL_ROUND
+		graphics_fill_circle(ctx, GPoint(bounds.size.w / 2, bounds.size.h - 20), 9);
+		graphics_draw_bitmap_in_rect(ctx, bt_icon, GRect(bounds.size.w / 2 - 8, bounds.size.h - 29, 18, 18));
+	#else
+		graphics_fill_circle(ctx, GPoint(bounds.size.w / 2, 35), 9);
+		graphics_draw_bitmap_in_rect(ctx, bt_icon, GRect(bounds.size.w / 2 - 8, 26, 18, 18));
+	#endif
 }
 
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
@@ -167,7 +191,6 @@ void set_text_color(int color) {
 		text_layer_set_text_color(temp_layer_unanimated, text_color);
 		text_layer_set_text_color(conditions_layer_unanimated, text_color);
 		text_layer_set_text_color(charge_layer, text_color);
-		text_layer_set_text_color(bluetooth_layer, text_color);
   #endif
 }
 
@@ -188,7 +211,6 @@ void inverter() {
 			text_layer_set_text_color(temp_layer_unanimated, GColorBlack);
 			text_layer_set_text_color(conditions_layer_unanimated, GColorBlack);
 			text_layer_set_text_color(charge_layer, GColorBlack);
-			text_layer_set_text_color(bluetooth_layer, GColorBlack);
 	    } else {
 	    	window_set_background_color(main_window, GColorBlack);
 			text_layer_set_text_color(time_layer, GColorWhite);
@@ -198,7 +220,6 @@ void inverter() {
 			text_layer_set_text_color(temp_layer_unanimated, GColorWhite);
 			text_layer_set_text_color(conditions_layer_unanimated, GColorWhite);
 			text_layer_set_text_color(charge_layer, GColorWhite);
-			text_layer_set_text_color(bluetooth_layer, GColorWhite);
 	    }
 }
 
@@ -280,11 +301,9 @@ static void main_window_load(Window *window) {
 	layer_set_hidden(text_layer_get_layer(charge_layer), true);
 
 	// Bluetooth status
-	bluetooth_layer = text_layer_create(GRect(0, time_frame.origin.y - 3, bounds.size.w, bounds.size.h));
-	text_layer_set_background_color(bluetooth_layer, GColorClear);
-	text_layer_set_font(bluetooth_layer, bt_font);
-	text_layer_set_text_alignment(bluetooth_layer, GTextAlignmentCenter);
-	text_layer_set_text(bluetooth_layer, "BT");
+	bluetooth_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	layer_set_update_proc(bluetooth_layer, draw_bt);
+	bt_icon = gbitmap_create_with_resource(RESOURCE_ID_BT_ICON);
 
 	// ========== WEATHER LAYERS ========== //
 
@@ -334,7 +353,7 @@ static void main_window_load(Window *window) {
 
 	// Extra elements
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(charge_layer));
-	layer_add_child(window_get_root_layer(window), text_layer_get_layer(bluetooth_layer));
+	layer_add_child(window_get_root_layer(window), bluetooth_layer);
 
 	// Weather elements
 	layer_add_child(window_get_root_layer(window), weather_layer);
@@ -430,9 +449,9 @@ static void main_window_load(Window *window) {
   	bool connected = bluetooth_connection_service_peek();
 
   	if (!connected) {
- 			layer_set_hidden(text_layer_get_layer(bluetooth_layer), false);
+ 			layer_set_hidden(bluetooth_layer, false);
  		} else {
-  		layer_set_hidden(text_layer_get_layer(bluetooth_layer), true);
+  		layer_set_hidden(bluetooth_layer, true);
  		}
 
   	charge_handler(); // Is the battery charging?
