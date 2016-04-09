@@ -45,6 +45,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   Tuple *lang_tup = dict_find(iter, KEY_LANGUAGE); // cstring
 	Tuple *largefont_tup = dict_find(iter, KEY_LARGE_FONT); // int8
 	Tuple *showseconds_tup = dict_find(iter, KEY_SHOW_SECONDS); // int8
+	Tuple *stepgoal_tup = dict_find(iter, KEY_STEP_GOAL); //int16
 	
 
   if (ready_tup) { // Wait for JS to be ready before requesting weather in selected language
@@ -191,6 +192,12 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		
 		layer_mark_dirty(bar_layer);
   }
+	
+	if (stepgoal_tup) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "KEY_STEP_GOAL received!");
+		
+		step_goal = stepgoal_tup->value->int16;
+	}
 
   if (date_format_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_DATE_FORMAT received!");

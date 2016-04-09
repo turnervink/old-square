@@ -117,11 +117,13 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 void health_handler(HealthEventType event, void *contect) {
 	time_t start = time_start_of_today();
 	time_t end = time(NULL);
+	time_t end_of_day = time_start_of_today() + SECONDS_PER_DAY;
 	HealthServiceAccessibilityMask mask = health_service_metric_accessible(HealthMetricStepCount, start, end);
 	
 	if (mask & HealthServiceAccessibilityMaskAvailable) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Step data available!");
 		steps = health_service_sum_today(HealthMetricStepCount);
+		step_goal = health_service_sum_averaged(HealthMetricStepCount, start, end_of_day, HealthServiceTimeScopeDailyWeekdayOrWeekend);
 		APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", steps);
 	} else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Step data unavailable");
@@ -442,6 +444,12 @@ static void main_window_load(Window *window) {
   	} else {
   		lang = 0;
   	}
+	
+	if (persist_exists(KEY_STEP_GOAL)) {
+		step_goal = persist_read_int(KEY_STEP_GOAL);
+	} else {
+		step_goal = 10000;
+	}
 
   	bool connected = bluetooth_connection_service_peek();
 

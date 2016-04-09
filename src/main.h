@@ -19,6 +19,7 @@
 #define KEY_READY 15
 #define KEY_LARGE_FONT 16
 #define KEY_SHOW_SECONDS 17
+#define KEY_STEP_GOAL 18
 
 Window *main_window;
 

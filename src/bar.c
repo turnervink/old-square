@@ -2,13 +2,15 @@
 #include "main.h"
 #include "bar.h"
 
-int bar_setting = 1; // 0 is battery, 1 is steps, 2 is static
+int bar_setting = 0; // 0 is battery, 1 is steps, 2 is static
 int steps;
-int step_goal = 10000;
+int step_goal;
 
 void battery_handler(BatteryChargeState state) {
 	APP_LOG(APP_LOG_LEVEL_INFO, "Battery change registered!");
-	layer_mark_dirty(bar_layer);
+	if (bar_setting == 0) {
+		layer_mark_dirty(bar_layer);
+	}
 }
 
 void bar_layer_draw(Layer *layer, GContext *ctx) {
@@ -50,6 +52,7 @@ void bar_layer_draw(Layer *layer, GContext *ctx) {
 		graphics_fill_rect(ctx, GRect((bounds.size.w / 2), (bounds.size.h / 2) + 8, -((140)-(((100-pct)/10)*14))/2, 2), 0, GCornerNone); // Centre to left
 	} else if (bar_setting == 1) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Showing steps %d", steps);
+		APP_LOG(APP_LOG_LEVEL_INFO, "Step goal %d", step_goal);
 		// Step goal
 		
 		int steps_per_px = step_goal / 140;

@@ -165,17 +165,6 @@ module.exports = [
 		"items": [
 			{
 				"type": "heading",
-				"id": "health-heading",
-				"defaultValue": "Pebble Health",
-				"size": 4
-			}
-		]
-	},
-	{
-		"type": "section",
-		"items": [
-			{
-				"type": "heading",
 				"id": "bluetooth-heading",
 				"defaultValue": "Bluetooth",
 				"size": 4
@@ -191,6 +180,26 @@ module.exports = [
 				"appKey": "vibeConnect",
 				"label": "Vibrate on reconnect",
 				"defaultValue": false
+			}
+		]
+	},
+	{
+		"type": "section",
+		"items": [
+			{
+				"type": "heading",
+				"id": "premium-heading",
+				"defaultValue": "Premium Settings",
+				"size": 4
+			},
+			{
+				"type": "slider",
+				"appKey": "stepGoal",
+				"label":"Step goal",
+				"min": 1000,
+				"max": 10000,
+				"step": 1000,
+				"description": "Change middle bar setting to step goal under Appearance to view step progress"
 			}
 		]
 	},
