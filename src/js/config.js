@@ -98,10 +98,24 @@ module.exports = [
 				"defaultValue": false
 			},
 			{
-				"type": "toggle",
-				"appKey": "reflectBatt",
-				"label": "Bar shows battery level",
-				"defaultValue": true
+				"type": "select",
+				"appKey": "barType",
+				"defaultValue": "0",
+				"label": "Middle bar",
+				"options": [
+					{
+						"label": "Battery level",
+						"value": 0
+					},
+					{
+						"label": "Step goal progress",
+						"value": 1
+					},
+					{
+						"label": "Static bar",
+						"value": 2
+					}
+				]
 			},
 			{
 				"type": "toggle",

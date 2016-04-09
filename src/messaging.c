@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "main.h"
 #include "languages.h"
+#include "bar.h"
 
 void init_appmessage() {
 	APP_LOG(APP_LOG_LEVEL_INFO, "Opening app message inbox");
@@ -39,7 +40,7 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   Tuple *background_color_tup = dict_find(iter, KEY_BACKGROUND_COLOR); // int32
   Tuple *vibe_on_connect_tup = dict_find(iter, KEY_VIBE_ON_CONNECT); // int8
   Tuple *vibe_on_disconnect_tup = dict_find(iter, KEY_VIBE_ON_DISCONNECT); // int8
-  Tuple *reflect_batt_tup = dict_find(iter, KEY_REFLECT_BATT); // int8
+  Tuple *bar_tup = dict_find(iter, KEY_BAR_TYPE); // int8
   Tuple *date_format_tup = dict_find(iter, KEY_DATE_FORMAT); // cstring
   Tuple *lang_tup = dict_find(iter, KEY_LANGUAGE); // cstring
 	Tuple *largefont_tup = dict_find(iter, KEY_LARGE_FONT); // int8
@@ -171,12 +172,24 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	text_layer_set_text(temp_layer_unanimated, temp_buffer);
   }
 
-  if (reflect_batt_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT received!");
+  if (bar_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BAR_TYPE received!");
 
-  	reflect_batt = reflect_batt_tup->value->int8;
+  	if (strcmp(bar_tup->value->cstring, "0") == 0) {
+			bar_setting = 0;
+		} else if (strcmp(bar_tup->value->cstring, "1") == 0) {
+			bar_setting = 1;
+		} else if (strcmp(bar_tup->value->cstring, "2") == 0) {
+			bar_setting = 2;
+		} else {
+			bar_setting = 0;
+		}
+		
+		APP_LOG(APP_LOG_LEVEL_INFO, "Bar settings %d", bar_setting);
 
-  	persist_write_int(KEY_REFLECT_BATT, reflect_batt);
+  	persist_write_int(KEY_BAR_TYPE, bar_setting);
+		
+		layer_mark_dirty(bar_layer);
   }
 
   if (date_format_tup) {

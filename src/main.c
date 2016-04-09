@@ -30,7 +30,6 @@ bool picked_font = 0;
 bool show_seconds = 0;
 
 int lang; // User selected language code
-int steps; // Steps taken
 
 void on_animation_stopped(Animation *anim, bool finished, void *context) {
     //Free the memory used by the Animation
@@ -412,20 +411,11 @@ static void main_window_load(Window *window) {
 	
 		
 
-  	if (persist_exists(KEY_REFLECT_BATT)) {
-  	  	reflect_batt = persist_read_int(KEY_REFLECT_BATT);
+  	if (persist_exists(KEY_BAR_TYPE)) {
+  	  	bar_setting = persist_read_int(KEY_BAR_TYPE);
   	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT exists! - %d", reflect_batt);
-
-  	  if (reflect_batt == 1) {
-  			layer_set_hidden(static_layer, true);
-  			layer_set_hidden(bar_layer, false);
-  		} else {
-  			layer_set_hidden(static_layer, false);
-  			layer_set_hidden(bar_layer, true);
-  		}
   	} else {
-  		layer_set_hidden(static_layer, true);
-  		layer_set_hidden(bar_layer, false);
+  		bar_setting = 0;
   	}
 
   	if (persist_exists(KEY_SHOW_WEATHER)) {
