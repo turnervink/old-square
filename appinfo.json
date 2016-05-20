@@ -1,19 +1,38 @@
 {
     "appKeys": {
         "KEY_CONDITIONS": 4,
+        "KEY_PREMIUM_ACTIVATED": 501,
         "KEY_READY": 15,
         "KEY_TEMPERATURE": 2,
         "KEY_TEMPERATURE_IN_C": 3,
+        "KIEZELPAY_APP_ID": 119526514,
+        "KIEZELPAY_DEVICE_TOKEN": 119526515,
+        "KIEZELPAY_INTERNET_FAIL": 119526520,
+        "KIEZELPAY_PURCHASE_CODE": 119526519,
+        "KIEZELPAY_PURCHASE_STATUS": 119526521,
+        "KIEZELPAY_RANDOM": 119526522,
+        "KIEZELPAY_READY": 119526512,
+        "KIEZELPAY_STATUS_CHECK": 119526513,
+        "KIEZELPAY_STATUS_CHECKSUM": 119526517,
+        "KIEZELPAY_STATUS_RESULT": 119526516,
+        "KIEZELPAY_STATUS_TRIAL_DURATION": 119526518,
+        "KIEZELPAY_STATUS_VALIDITY_PERIOD": 119526523,
         "backgroundColor": 7,
+        "barType": 12,
+        "buyPremium": 500,
+        "cityName": 20,
         "dateFormat": 13,
         "invertColors": 1,
         "langSel": 14,
         "largeFont": 16,
-        "reflectBatt": 12,
+        "manualGoal": 19,
+        "nightBackgroundColor": 22,
+        "nightTextColor": 21,
         "shakeWeather": 5,
         "showBluetooth": 11,
         "showSeconds": 17,
         "showWeather": 8,
+        "stepGoal": 18,
         "textColor": 0,
         "useCelsius": 6,
         "vibeConnect": 10,
@@ -21,7 +40,8 @@
     },
     "capabilities": [
         "location",
-        "configurable"
+        "configurable",
+        "health"
     ],
     "companyName": "Turner Vink",
     "enableMultiJS": true,
@@ -37,19 +57,7 @@
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_34",
-                "targetPlatforms": null,
-                "type": "font"
-            },
-            {
-                "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_14",
-                "targetPlatforms": null,
-                "type": "font"
-            },
-            {
-                "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_26",
+                "name": "FONT_SQUARE_18",
                 "targetPlatforms": null,
                 "type": "font"
             },
@@ -61,7 +69,19 @@
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_18",
+                "name": "FONT_SQUARE_26",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_14",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_34",
                 "targetPlatforms": null,
                 "type": "font"
             }

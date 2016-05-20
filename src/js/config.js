@@ -98,10 +98,24 @@ module.exports = [
 				"defaultValue": false
 			},
 			{
-				"type": "toggle",
-				"appKey": "reflectBatt",
-				"label": "Bar shows battery level",
-				"defaultValue": true
+				"type": "select",
+				"appKey": "barType",
+				"defaultValue": "0",
+				"label": "Middle bar",
+				"options": [
+					{
+						"label": "Battery level",
+						"value": 0
+					},
+					{
+						"label": "Step goal progress",
+						"value": 1
+					},
+					{
+						"label": "Static bar",
+						"value": 2
+					}
+				]
 			},
 			{
 				"type": "toggle",
@@ -171,19 +185,75 @@ module.exports = [
 	},
 	{
 		"type": "section",
+		"items": [
+			{
+				"type": "heading",
+				"id": "premium-heading",
+				"defaultValue": "Premium Settings",
+				"size": 4
+			},
+			{
+				"type": "toggle",
+				"appKey": "buyPremium",
+				"label": "Premium Features - $1.99",
+				"description": "Please switch this toggle, save, and then come back to adjust new settings (even if you've already paid and reinstalled; you won't have to pay again!)",
+				"defaultValue": false
+			},
+			{
+				"type": "toggle",
+				"appKey": "manualGoal",
+				"label": "Custom step goal",
+				"defaultValue": false
+			},
+			{
+				"type": "slider",
+				"appKey": "stepGoal",
+				"defaultValue": 10000,
+				"label":"Step goal",
+				"min": 1000,
+				"max": 10000,
+				"step": 1000,
+				"description": "Change middle bar setting to step goal under Appearance to view step progress"
+			},
+			{
+				"type": "color",
+				"appKey": "nightBackgroundColor",
+				"defaultValue": "000000",
+				"label": "Night Mode Background colour",
+				"sunlight": true,
+			},
+			{
+				"type": "color",
+				"appKey": "nightTextColor",
+				"defaultValue": "00ff00",
+				"label": "Night Mode Text colour",
+				"sunlight": true,
+			},
+			{
+				"type": "input",
+				"appKey": "cityName",
+				"defaultValue": "",
+				"label": "Weather location",
+				"description": "Enter a city to use for weather updates, or leave blank to use GPS location.",
+				"attributes": {
+					"placeholder": "",
+				}
+			}
+			]
+	},
+	{
+		"type": "section",
 			"items": [
 				{
 					"type": "button",
 					"defaultValue": "Donate",
 					"id": "donateButton",
 					"description": "<p style='text-align:center;'>Before you tap save, consider donating a dollar or two through PayPal by tapping the button above.</p>"
+				},
+				{
+					"type": "submit",
+					"defaultValue": "Save"
 				}
 			]
-	},
-	
-	{
-  	"type": "submit",
-  	"defaultValue": "Save"
 	}
-	
 ];

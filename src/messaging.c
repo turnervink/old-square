@@ -1,11 +1,70 @@
 #include <pebble.h>
 #include "main.h"
-#include "languages.h"
+#include "kiezelpay.h"
+#include "bar.h"
+#include "premium.h"
+
+static bool kiezelpay_event_callback(kiezelpay_event e, void* extra_data) {
+  switch (e) {
+    case KIEZELPAY_ERROR:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_ERROR");
+      break;
+    case KIEZELPAY_BLUETOOTH_UNAVAILABLE:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_BLUETOOTH_UNAVAILABLE");
+      break;
+    case KIEZELPAY_INTERNET_UNAVAILABLE:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_INTERNET_UNAVAILABLE");
+      break;
+#if KIEZELPAY_DISABLE_TIME_TRIAL == 0
+    case KIEZELPAY_TRIAL_STARTED:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_TRIAL_STARTED");
+      break;
+#endif
+    case KIEZELPAY_TRIAL_ENDED:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_TRIAL_ENDED");
+      break;
+    case KIEZELPAY_CODE_AVAILABLE:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_CODE_AVAILABLE");
+      break;
+    case KIEZELPAY_PURCHASE_STARTED:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_PURCHASE_STARTED");
+      break;
+    case KIEZELPAY_LICENSED:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(): KIEZELPAY_LICENSED");
+			activate_premium();
+      break;
+    default:
+      APP_LOG(APP_LOG_LEVEL_DEBUG, "kiezelpay_event_callback(); unknown event");
+      break;
+  };
+  
+  //return true;   //prevent the kiezelpay lib from showing messages by signaling it that we handled the event ourselves
+  return false;    //let the kiezelpay lib handle the event
+}
 
 void init_appmessage() {
 	APP_LOG(APP_LOG_LEVEL_INFO, "Opening app message inbox");
 	
-	app_message_register_inbox_received(inbox_received_handler);
+	kiezelpay_settings.on_inbox_received = inbox_received_callback;
+	kiezelpay_settings.on_inbox_dropped = inbox_dropped_callback;
+	kiezelpay_settings.on_outbox_failed = outbox_failed_callback;
+	kiezelpay_settings.on_outbox_sent = outbox_sent_callback;
+	
+	kiezelpay_settings.on_kiezelpay_event = kiezelpay_event_callback;
+	
+	int size_buffer_in = dict_calc_buffer_size(20, sizeof(char), sizeof(int8_t), sizeof(int32_t), sizeof(int8_t), sizeof(int32_t), sizeof(int32_t), 
+	sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(int32_t), 
+	sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(char), sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int16_t), sizeof(int8_t), sizeof(char), sizeof(int32_t), sizeof(int32_t));
+	
+	APP_LOG(APP_LOG_LEVEL_INFO, "Inbox size: %d", size_buffer_in);
+	
+	kiezelpay_settings.messaging_inbox_size = size_buffer_in + 50;
+	
+	kiezelpay_init();
+	
+	load_premium_settings();
+	
+	/*app_message_register_inbox_received(inbox_received_callback);
 	app_message_register_inbox_dropped(inbox_dropped_callback);
 	app_message_register_outbox_failed(outbox_failed_callback);
 	app_message_register_outbox_sent(outbox_sent_callback);
@@ -16,10 +75,11 @@ void init_appmessage() {
 		
 	int size_buffer_out = dict_calc_buffer_size(3, sizeof(int8_t), sizeof(int8_t), sizeof(char));
 	
-  app_message_open(size_buffer_in, size_buffer_out);
+  app_message_open(size_buffer_in, size_buffer_out);*/
 }
 
-void inbox_received_handler(DictionaryIterator *iter, void *contex) {
+
+void inbox_received_callback(DictionaryIterator *iter, void *contex) {
   static char temp_buffer[15];
   static char temp_c_buffer[15];
   static char conditions_buffer[100];
@@ -27,8 +87,11 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 	//static bool weather_needs_update;
 
   Tuple *ready_tup = dict_find(iter, KEY_READY); // cstring
+	
+	Tuple *buypremium_tup = dict_find(iter, KEY_BUY_PREMIUM); // int8
 
   Tuple *text_color_tup = dict_find(iter, KEY_TEXT_COLOR); // int32
+	Tuple *night_text_color_tup = dict_find(iter, KEY_NIGHT_TEXT_COLOR); // int32
   Tuple *invert_colors_tup = dict_find(iter, KEY_INVERT_COLORS); // int8
   Tuple *temperature_tup = dict_find(iter, KEY_TEMPERATURE); // int32
   Tuple *temperature_in_c_tup = dict_find(iter, KEY_TEMPERATURE_IN_C); // int32
@@ -37,13 +100,17 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   Tuple *show_weather_tup = dict_find(iter, KEY_SHOW_WEATHER); // int8
   Tuple *use_celsius_tup = dict_find(iter, KEY_USE_CELSIUS); // int8
   Tuple *background_color_tup = dict_find(iter, KEY_BACKGROUND_COLOR); // int32
+	Tuple *night_background_color_tup = dict_find(iter, KEY_NIGHT_BACKGROUND_COLOR); // int32
   Tuple *vibe_on_connect_tup = dict_find(iter, KEY_VIBE_ON_CONNECT); // int8
   Tuple *vibe_on_disconnect_tup = dict_find(iter, KEY_VIBE_ON_DISCONNECT); // int8
-  Tuple *reflect_batt_tup = dict_find(iter, KEY_REFLECT_BATT); // int8
+  Tuple *bar_tup = dict_find(iter, KEY_BAR_TYPE); // int8
   Tuple *date_format_tup = dict_find(iter, KEY_DATE_FORMAT); // cstring
   Tuple *lang_tup = dict_find(iter, KEY_LANGUAGE); // cstring
 	Tuple *largefont_tup = dict_find(iter, KEY_LARGE_FONT); // int8
 	Tuple *showseconds_tup = dict_find(iter, KEY_SHOW_SECONDS); // int8
+	Tuple *stepgoal_tup = dict_find(iter, KEY_STEP_GOAL); //int16
+	Tuple *manualgoal_tup = dict_find(iter, KEY_MANUAL_GOAL); // int8
+	Tuple *city_tup = dict_find(iter, KEY_CITY); //cstring
 	
 
   if (ready_tup) { // Wait for JS to be ready before requesting weather in selected language
@@ -54,10 +121,8 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 		update_weather();
   }
 
-  
-
   if (text_color_tup) {
-    int text_color = text_color_tup->value->int32;
+    text_color = text_color_tup->value->int32;
     APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR received!");
 
     persist_write_int(KEY_TEXT_COLOR, text_color);
@@ -67,13 +132,27 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   }
 
   if (background_color_tup) {
-  	int bg_color = background_color_tup->value->int32;
+  	bg_color = background_color_tup->value->int32;
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR received! - %d", bg_color);
 
   	persist_write_int(KEY_BACKGROUND_COLOR, bg_color);
   	#ifdef PBL_COLOR
     	set_background_color(bg_color);
     #endif
+  }
+	
+	if (night_text_color_tup) {
+		night_text_color = night_text_color_tup->value->int32;
+    APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_TEXT_COLOR received!");
+
+    persist_write_int(KEY_NIGHT_TEXT_COLOR, night_text_color);
+	}
+	
+	if (night_background_color_tup) {
+  	night_bg_color = night_background_color_tup->value->int32;
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_BACKGROUND_COLOR received! - %d", night_bg_color);
+
+  	persist_write_int(KEY_NIGHT_BACKGROUND_COLOR, night_bg_color);
   }
 
   if (invert_colors_tup) {
@@ -171,12 +250,24 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
   	text_layer_set_text(temp_layer_unanimated, temp_buffer);
   }
 
-  if (reflect_batt_tup) {
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT received!");
+  if (bar_tup) {
+  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BAR_TYPE received!");
 
-  	reflect_batt = reflect_batt_tup->value->int8;
+  	if (strcmp(bar_tup->value->cstring, "0") == 0) {
+			bar_setting = 0;
+		} else if (strcmp(bar_tup->value->cstring, "1") == 0) {
+			bar_setting = 1;
+		} else if (strcmp(bar_tup->value->cstring, "2") == 0) {
+			bar_setting = 2;
+		} else {
+			bar_setting = 0;
+		}
+		
+		APP_LOG(APP_LOG_LEVEL_INFO, "Bar settings %d", bar_setting);
 
-  	persist_write_int(KEY_REFLECT_BATT, reflect_batt);
+  	persist_write_int(KEY_BAR_TYPE, bar_setting);
+		
+		layer_mark_dirty(bar_layer);
   }
 
   if (date_format_tup) {
@@ -254,6 +345,37 @@ void inbox_received_handler(DictionaryIterator *iter, void *contex) {
 
   	persist_write_int(KEY_SHOW_WEATHER, show_weather);
   }
+	
+	
+	// Premium Features
+	
+	if (buypremium_tup) {
+		if (buypremium_tup->value->int8 == 1) {
+			kiezelpay_start_purchase();
+		} else {
+			kiezelpay_cancel_purchase();
+		}
+	}
+	
+	int32_t result = kiezelpay_get_status();
+	
+	if (result & KIEZELPAY_LICENSED) {
+		if (manualgoal_tup) {
+			manual_goal = 1;
+			persist_write_int(KEY_MANUAL_GOAL, manual_goal);
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_MANUAL_GOAL received!");
+			if (manualgoal_tup->value->int8 == 1) {
+				step_goal = stepgoal_tup->value->int16;
+				APP_LOG(APP_LOG_LEVEL_INFO, "Setting a manual goal of %d", step_goal);
+				persist_write_int(KEY_STEP_GOAL, step_goal);
+			}
+		}
+		
+		if (city_tup) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CITY received!");
+		}
+	}
+	
 	
 	APP_LOG(APP_LOG_LEVEL_INFO, "All keys received");
 

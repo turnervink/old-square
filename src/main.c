@@ -1,7 +1,10 @@
 #include <pebble.h>
-#include "languages.h"
 #include "main.h"
-#include "battery.h"
+#include "kiezelpay.h"
+#include "languages.h"
+#include "bar.h"
+#include "premium.h"
+#include "coloursched.h"
 	
 Window *main_window;
 
@@ -11,7 +14,7 @@ TextLayer *time_layer, *date_layer, *temp_layer, *conditions_layer, *temp_layer_
 GFont weather_font, bt_font, date_font, time_font, small_time_font;
 
 static Layer  *weather_layer, *weather_layer_unanimated;
-Layer *batt_layer, *static_layer;
+Layer *bar_layer, *static_layer;
 
 static GBitmap *bt_icon;
 
@@ -28,6 +31,7 @@ bool euro_date = 0;
 bool large_font = 0;
 bool picked_font = 0;
 bool show_seconds = 0;
+bool manual_goal = 0;
 
 int lang; // User selected language code
 
@@ -93,6 +97,9 @@ static void draw_bt(Layer *layer, GContext *ctx) {
 
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	update_time();
+	
+	check_for_night_mode();
+	
 	if (show_weather == 1) {
 		// Update weather every 30 minutes
 		if(tick_time->tm_min % 30 == 0) {
@@ -112,6 +119,22 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 		}
 	}
 }
+
+#ifdef PBL_HEALTH
+void health_handler(HealthEventType event, void *contect) {
+	time_t start = time_start_of_today();
+	time_t end = time(NULL);
+	time_t end_of_day = time_start_of_today() + SECONDS_PER_DAY;
+	HealthServiceAccessibilityMask mask = health_service_metric_accessible(HealthMetricStepCount, start, end);
+	
+	if (mask & HealthServiceAccessibilityMaskAvailable) {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Step data available!");
+		steps = health_service_sum_today(HealthMetricStepCount);
+	} else {
+		APP_LOG(APP_LOG_LEVEL_INFO, "Step data unavailable");
+	}
+}
+#endif
 
 void update_time() {
   time_t temp = time(NULL);
@@ -171,14 +194,16 @@ void update_layers() {
 			layer_set_hidden(weather_layer_unanimated, true);
 		}
 	}
+	
+	layer_mark_dirty(bar_layer);
 
-	if (reflect_batt == 1) {
+	/*if (reflect_batt == 1) {
 		layer_set_hidden(static_layer, true);
-		layer_set_hidden(batt_layer, false);
+		layer_set_hidden(bar_layer, false);
   } else {
 		layer_set_hidden(static_layer, false);
-		layer_set_hidden(batt_layer, true);
-  }
+		layer_set_hidden(bar_layer, true);
+  }*/
 }
 
 void set_text_color(int color) {
@@ -240,8 +265,8 @@ static void main_window_load(Window *window) {
 	weather_layer_unanimated = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
 	
 	// Battery bar
-	batt_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
-	layer_set_update_proc(batt_layer, batt_layer_draw);
+	bar_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
+	layer_set_update_proc(bar_layer, bar_layer_draw);
 
 	// Static bar
 	static_layer = layer_create(GRect(0, 0, bounds.size.w, bounds.size.h));
@@ -335,7 +360,7 @@ static void main_window_load(Window *window) {
 	// ========== ADD CHILDREN ========== //
 
 	// Main elements
-	layer_add_child(window_get_root_layer(window), batt_layer);
+	layer_add_child(window_get_root_layer(window), bar_layer);
 	layer_add_child(window_get_root_layer(window), static_layer);
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(time_layer));
 	layer_add_child(window_get_root_layer(window), text_layer_get_layer(date_layer));
@@ -355,20 +380,36 @@ static void main_window_load(Window *window) {
 	
 	#ifdef PBL_COLOR
 		if (persist_exists(KEY_TEXT_COLOR)) {
-	    	int text_color = persist_read_int(KEY_TEXT_COLOR);
+	    	text_color = persist_read_int(KEY_TEXT_COLOR);
 	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists! - %d", text_color);
-	    	set_text_color(text_color);
+	    	//set_text_color(text_color);
 	    } else {
-	    	set_text_color(0x00ff00); // green
+	    	//set_text_color(0x00ff00); // green
+			text_color = 0x00ff00;
 	    }
 
-	    if (persist_exists(KEY_BACKGROUND_COLOR)) {
-	    	int bg_color = persist_read_int(KEY_BACKGROUND_COLOR);
-	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR exists! - %d", bg_color);
-	    	set_background_color(bg_color);
-	    } else {
-	    	set_background_color(0x000000); // black
-	    }
+		if (persist_exists(KEY_BACKGROUND_COLOR)) {
+			bg_color = persist_read_int(KEY_BACKGROUND_COLOR);
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR exists! - %d", bg_color);
+			//set_background_color(bg_color);
+		} else {
+			//set_background_color(0x000000); // black
+			bg_color = 0x000000;
+		}
+	
+		if (persist_exists(KEY_NIGHT_TEXT_COLOR)) {
+			night_text_color = persist_read_int(KEY_NIGHT_TEXT_COLOR);
+		} else {
+			night_text_color = 0x00ff00;
+		}
+	
+		if (persist_exists(KEY_NIGHT_BACKGROUND_COLOR)) {
+			night_bg_color = persist_read_int(KEY_NIGHT_BACKGROUND_COLOR);
+		} else {
+			night_bg_color = 0x000000;
+		}
+	
+	check_for_night_mode();
 	#endif
 
 
@@ -393,20 +434,11 @@ static void main_window_load(Window *window) {
 	
 		
 
-  	if (persist_exists(KEY_REFLECT_BATT)) {
-  	  	reflect_batt = persist_read_int(KEY_REFLECT_BATT);
+  	if (persist_exists(KEY_BAR_TYPE)) {
+  	  	bar_setting = persist_read_int(KEY_BAR_TYPE);
   	  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_REFLECT_BATT exists! - %d", reflect_batt);
-
-  	  if (reflect_batt == 1) {
-  			layer_set_hidden(static_layer, true);
-  			layer_set_hidden(batt_layer, false);
-  		} else {
-  			layer_set_hidden(static_layer, false);
-  			layer_set_hidden(batt_layer, true);
-  		}
   	} else {
-  		layer_set_hidden(static_layer, true);
-  		layer_set_hidden(batt_layer, false);
+  		bar_setting = 0;
   	}
 
   	if (persist_exists(KEY_SHOW_WEATHER)) {
@@ -442,6 +474,7 @@ static void main_window_load(Window *window) {
   		layer_set_hidden(bluetooth_layer, true);
  		}
 	
+	
 }
 
 static void main_window_unload(Window *window) {
@@ -451,7 +484,7 @@ static void main_window_unload(Window *window) {
 	text_layer_destroy(conditions_layer_unanimated);
 	text_layer_destroy(temp_layer);
 	text_layer_destroy(temp_layer_unanimated);
-	layer_destroy(batt_layer);
+	layer_destroy(bar_layer);
 	layer_destroy(weather_layer);
 	layer_destroy(weather_layer_unanimated);
 
@@ -474,10 +507,15 @@ static void init() {
 	accel_tap_service_subscribe(tap_handler);
 	bluetooth_connection_service_subscribe(bluetooth_handler);
 	
+	#ifdef PBL_HEALTH 
+	health_service_events_subscribe(health_handler, NULL);
+	#endif
+	
 	init_appmessage(); // Init appmessage in messaging.c
 }
 
 static void deinit() {
+	//kiezelpay_deinit();
   window_destroy(main_window);
   tick_timer_service_unsubscribe();
  	battery_state_service_unsubscribe();

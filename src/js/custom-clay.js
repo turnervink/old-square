@@ -1,6 +1,14 @@
 module.exports = function(minified) {
   var clayConfig = this;
 	
+	function showSlider() {
+		if (this.get()) {
+			clayConfig.getItemByAppKey("stepGoal").show();
+		} else {
+			clayConfig.getItemByAppKey("stepGoal").hide();
+		}
+	}
+	
 	function weatherSection() {
 		if (this.get()) {
 			clayConfig.getItemByAppKey("useCelsius").show();
@@ -10,6 +18,18 @@ module.exports = function(minified) {
 			clayConfig.getItemByAppKey("useCelsius").hide();
 			clayConfig.getItemByAppKey("shakeWeather").hide();
 			clayConfig.getItemByAppKey("largeFont").hide();
+		}
+	}
+	
+	function premiumSection() {
+		if (this.get()) {
+			clayConfig.getItemByAppKey("manualGoal").show();
+			showSlider.call(clayConfig.getItemByAppKey("manualGoal"));
+			clayConfig.getItemByAppKey("cityName").show();
+		} else {
+			clayConfig.getItemByAppKey("manualGoal").hide();
+			clayConfig.getItemByAppKey("stepGoal").hide();
+			clayConfig.getItemByAppKey("cityName").hide();
 		}
 	}
 	
@@ -47,6 +67,14 @@ module.exports = function(minified) {
 		donateButton.on("click", function() {
 			window.location.href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=XM6V4BDNBC2TJ";
 		});
+		
+		var premiumToggle = clayConfig.getItemByAppKey("buyPremium");
+		premiumSection.call(premiumToggle);
+		premiumToggle.on("change", premiumSection);
+		
+		var manualGoal = clayConfig.getItemByAppKey("manualGoal");
+		showSlider.call(manualGoal);
+		manualGoal.on("change", showSlider);
 		
 		/*var showSeconds = clayConfig.getItemByAppKey("showSeconds");
 		fontToggle.call(showSeconds);
