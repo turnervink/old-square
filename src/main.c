@@ -1,7 +1,10 @@
 #include <pebble.h>
-#include "languages.h"
 #include "main.h"
+#include "kiezelpay.h"
+#include "languages.h"
 #include "bar.h"
+#include "premium.h"
+#include "coloursched.h"
 	
 Window *main_window;
 
@@ -28,6 +31,7 @@ bool euro_date = 0;
 bool large_font = 0;
 bool picked_font = 0;
 bool show_seconds = 0;
+bool manual_goal = 0;
 
 int lang; // User selected language code
 
@@ -93,6 +97,9 @@ static void draw_bt(Layer *layer, GContext *ctx) {
 
 void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 	update_time();
+	
+	check_for_night_mode();
+	
 	if (show_weather == 1) {
 		// Update weather every 30 minutes
 		if(tick_time->tm_min % 30 == 0) {
@@ -123,8 +130,6 @@ void health_handler(HealthEventType event, void *contect) {
 	if (mask & HealthServiceAccessibilityMaskAvailable) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Step data available!");
 		steps = health_service_sum_today(HealthMetricStepCount);
-		step_goal = health_service_sum_averaged(HealthMetricStepCount, start, end_of_day, HealthServiceTimeScopeDailyWeekdayOrWeekend);
-		APP_LOG(APP_LOG_LEVEL_INFO, "Steps: %d", steps);
 	} else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Step data unavailable");
 	}
@@ -375,20 +380,36 @@ static void main_window_load(Window *window) {
 	
 	#ifdef PBL_COLOR
 		if (persist_exists(KEY_TEXT_COLOR)) {
-	    	int text_color = persist_read_int(KEY_TEXT_COLOR);
+	    	text_color = persist_read_int(KEY_TEXT_COLOR);
 	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_TEXT_COLOR exists! - %d", text_color);
-	    	set_text_color(text_color);
+	    	//set_text_color(text_color);
 	    } else {
-	    	set_text_color(0x00ff00); // green
+	    	//set_text_color(0x00ff00); // green
+			text_color = 0x00ff00;
 	    }
 
-	    if (persist_exists(KEY_BACKGROUND_COLOR)) {
-	    	int bg_color = persist_read_int(KEY_BACKGROUND_COLOR);
-	    	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR exists! - %d", bg_color);
-	    	set_background_color(bg_color);
-	    } else {
-	    	set_background_color(0x000000); // black
-	    }
+		if (persist_exists(KEY_BACKGROUND_COLOR)) {
+			bg_color = persist_read_int(KEY_BACKGROUND_COLOR);
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_BACKGROUND_COLOR exists! - %d", bg_color);
+			//set_background_color(bg_color);
+		} else {
+			//set_background_color(0x000000); // black
+			bg_color = 0x000000;
+		}
+	
+		if (persist_exists(KEY_NIGHT_TEXT_COLOR)) {
+			night_text_color = persist_read_int(KEY_NIGHT_TEXT_COLOR);
+		} else {
+			night_text_color = 0x00ff00;
+		}
+	
+		if (persist_exists(KEY_NIGHT_BACKGROUND_COLOR)) {
+			night_bg_color = persist_read_int(KEY_NIGHT_BACKGROUND_COLOR);
+		} else {
+			night_bg_color = 0x000000;
+		}
+	
+	check_for_night_mode();
 	#endif
 
 
@@ -444,12 +465,6 @@ static void main_window_load(Window *window) {
   	} else {
   		lang = 0;
   	}
-	
-	if (persist_exists(KEY_STEP_GOAL)) {
-		step_goal = persist_read_int(KEY_STEP_GOAL);
-	} else {
-		step_goal = 10000;
-	}
 
   	bool connected = bluetooth_connection_service_peek();
 
@@ -458,6 +473,7 @@ static void main_window_load(Window *window) {
  		} else {
   		layer_set_hidden(bluetooth_layer, true);
  		}
+	
 	
 }
 
@@ -499,6 +515,7 @@ static void init() {
 }
 
 static void deinit() {
+	//kiezelpay_deinit();
   window_destroy(main_window);
   tick_timer_service_unsubscribe();
  	battery_state_service_unsubscribe();
