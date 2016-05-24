@@ -27,6 +27,8 @@
         "largeFont": 16,
         "manualGoal": 19,
         "nightBackgroundColor": 22,
+        "nightModeEnd": 24,
+        "nightModeStart": 23,
         "nightTextColor": 21,
         "shakeWeather": 5,
         "showBluetooth": 11,
@@ -57,19 +59,7 @@
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_18",
-                "targetPlatforms": null,
-                "type": "font"
-            },
-            {
-                "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_50",
-                "targetPlatforms": null,
-                "type": "font"
-            },
-            {
-                "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_26",
+                "name": "FONT_SQUARE_34",
                 "targetPlatforms": null,
                 "type": "font"
             },
@@ -81,7 +71,19 @@
             },
             {
                 "file": "fonts/square.ttf",
-                "name": "FONT_SQUARE_34",
+                "name": "FONT_SQUARE_26",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_50",
+                "targetPlatforms": null,
+                "type": "font"
+            },
+            {
+                "file": "fonts/square.ttf",
+                "name": "FONT_SQUARE_18",
                 "targetPlatforms": null,
                 "type": "font"
             }

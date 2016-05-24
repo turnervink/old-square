@@ -10,7 +10,7 @@ void check_for_night_mode() {
 	
 	APP_LOG(APP_LOG_LEVEL_INFO, "Hour for colourscheme is %d", cur_hour);
 	
-	if (cur_hour >= 20 || cur_hour < 7) {
+	if (cur_hour >= night_mode_start || cur_hour < night_mode_end) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using night colours");
 		set_text_color(night_text_color);
 		set_background_color(night_bg_color);

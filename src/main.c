@@ -409,7 +409,15 @@ static void main_window_load(Window *window) {
 			night_bg_color = 0x000000;
 		}
 	
-	check_for_night_mode();
+		if (persist_exists(KEY_NIGHT_START)) {
+			night_mode_start = persist_read_int(KEY_NIGHT_START);
+		}
+	
+		if (persist_exists(KEY_NIGHT_END)) {
+			night_mode_end = persist_read_int(KEY_NIGHT_END);
+		}
+	
+		check_for_night_mode();
 	#endif
 
 

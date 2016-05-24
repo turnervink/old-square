@@ -54,7 +54,7 @@ void init_appmessage() {
 	
 	int size_buffer_in = dict_calc_buffer_size(20, sizeof(char), sizeof(int8_t), sizeof(int32_t), sizeof(int8_t), sizeof(int32_t), sizeof(int32_t), 
 	sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(int32_t), 
-	sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(char), sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int16_t), sizeof(int8_t), sizeof(char), sizeof(int32_t), sizeof(int32_t));
+	sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(char), sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int16_t), sizeof(int8_t), sizeof(char), sizeof(int32_t), sizeof(int32_t), sizeof(int8_t), sizeof(int8_t));
 	
 	APP_LOG(APP_LOG_LEVEL_INFO, "Inbox size: %d", size_buffer_in);
 	
@@ -111,6 +111,8 @@ void inbox_received_callback(DictionaryIterator *iter, void *contex) {
 	Tuple *stepgoal_tup = dict_find(iter, KEY_STEP_GOAL); //int16
 	Tuple *manualgoal_tup = dict_find(iter, KEY_MANUAL_GOAL); // int8
 	Tuple *city_tup = dict_find(iter, KEY_CITY); //cstring
+	Tuple *nightstart_tup = dict_find(iter, KEY_NIGHT_START); // int8
+	Tuple *nightend_tup = dict_find(iter, KEY_NIGHT_END); //int8
 	
 
   if (ready_tup) { // Wait for JS to be ready before requesting weather in selected language
@@ -141,19 +143,7 @@ void inbox_received_callback(DictionaryIterator *iter, void *contex) {
     #endif
   }
 	
-	if (night_text_color_tup) {
-		night_text_color = night_text_color_tup->value->int32;
-    APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_TEXT_COLOR received!");
-
-    persist_write_int(KEY_NIGHT_TEXT_COLOR, night_text_color);
-	}
 	
-	if (night_background_color_tup) {
-  	night_bg_color = night_background_color_tup->value->int32;
-  	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_BACKGROUND_COLOR received! - %d", night_bg_color);
-
-  	persist_write_int(KEY_NIGHT_BACKGROUND_COLOR, night_bg_color);
-  }
 
   if (invert_colors_tup) {
   	APP_LOG(APP_LOG_LEVEL_INFO, "KEY_INVERT_COLORS received!");
@@ -373,6 +363,34 @@ void inbox_received_callback(DictionaryIterator *iter, void *contex) {
 		
 		if (city_tup) {
 			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CITY received!");
+		}
+		
+		if (night_text_color_tup) {
+			night_text_color = night_text_color_tup->value->int32;
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_TEXT_COLOR received!");
+
+			persist_write_int(KEY_NIGHT_TEXT_COLOR, night_text_color);
+		}
+	
+		if (night_background_color_tup) {
+			night_bg_color = night_background_color_tup->value->int32;
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_BACKGROUND_COLOR received! - %d", night_bg_color);
+
+			persist_write_int(KEY_NIGHT_BACKGROUND_COLOR, night_bg_color);
+  	}
+		
+		if (nightstart_tup) {
+			night_mode_start = atoi(nightstart_tup->value->cstring);
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_START received! - %d", night_mode_start);
+			
+			persist_write_int(KEY_NIGHT_START, night_mode_start);
+		}
+		
+		if (nightend_tup) {
+			night_mode_end = atoi(nightend_tup->value->cstring);
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_NIGHT_END received! - %d", night_mode_end);
+			
+			persist_write_int(KEY_NIGHT_END, night_mode_end);
 		}
 	}
 	

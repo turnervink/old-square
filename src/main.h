@@ -26,6 +26,8 @@
 #define KEY_PREMIUM_ACTIVATED 501
 #define KEY_NIGHT_TEXT_COLOR 21
 #define KEY_NIGHT_BACKGROUND_COLOR 22
+#define KEY_NIGHT_START 23
+#define KEY_NIGHT_END 24
 
 Window *main_window;
 
@@ -46,6 +48,7 @@ bool manual_goal;
 
 int text_color, night_text_color;
 int bg_color, night_bg_color;
+int night_mode_start, night_mode_end;
 
 // App message setup
 void init_appmessage();

@@ -373,7 +373,7 @@ Pebble.addEventListener('webviewclosed', function(e) {
 	
 	// Get the language and weather display settings and save them
 	if (premium === true) {
-		city = dict.cityName;
+		city = dict.cityName.value;
 		localStorage.city = city;
 	}
 	
