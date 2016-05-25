@@ -9,6 +9,16 @@ module.exports = function(minified) {
 		}
 	}
 	
+	function disableTimeInputs() {
+		if (this.get()) {
+			clayConfig.getItemByAppKey("nightModeStart").enable();
+			clayConfig.getItemByAppKey("nightModeEnd").enable();
+		} else {
+			clayConfig.getItemByAppKey("nightModeStart").disable();
+			clayConfig.getItemByAppKey("nightModeEnd").disable();
+		}
+	}
+	
 	function weatherSection() {
 		if (this.get()) {
 			clayConfig.getItemByAppKey("useCelsius").show();
@@ -26,10 +36,20 @@ module.exports = function(minified) {
 			clayConfig.getItemByAppKey("manualGoal").show();
 			showSlider.call(clayConfig.getItemByAppKey("manualGoal"));
 			clayConfig.getItemByAppKey("cityName").show();
+			clayConfig.getItemByAppKey("nightTextColor").show();
+			clayConfig.getItemByAppKey("nightBackgroundColor").show();
+			clayConfig.getItemByAppKey("nightModeStart").show();
+			clayConfig.getItemByAppKey("nightModeEnd").show();
+			clayConfig.getItemByAppKey("useNightMode").show();
 		} else {
 			clayConfig.getItemByAppKey("manualGoal").hide();
 			clayConfig.getItemByAppKey("stepGoal").hide();
 			clayConfig.getItemByAppKey("cityName").hide();
+			clayConfig.getItemByAppKey("nightTextColor").hide();
+			clayConfig.getItemByAppKey("nightBackgroundColor").hide();
+			clayConfig.getItemByAppKey("nightModeStart").hide();
+			clayConfig.getItemByAppKey("nightModeEnd").hide();
+			clayConfig.getItemByAppKey("useNightMode").hide();
 		}
 	}
 	
@@ -53,6 +73,11 @@ module.exports = function(minified) {
 		if (platform == "aplite") {
 			clayConfig.getItemByAppKey("backgroundColor").hide();
 			clayConfig.getItemByAppKey("textColor").hide();
+			clayConfig.getItemByAppKey("nightTextColor").hide();
+			clayConfig.getItemByAppKey("nightBackgroundColor").hide();
+			clayConfig.getItemByAppKey("nightModeStart").hide();
+			clayConfig.getItemByAppKey("nightModeEnd").hide();
+			clayConfig.getItemByAppKey("useNightMode").hide();
 		}
 		
 		if (platform == "basalt") {
@@ -75,6 +100,10 @@ module.exports = function(minified) {
 		var manualGoal = clayConfig.getItemByAppKey("manualGoal");
 		showSlider.call(manualGoal);
 		manualGoal.on("change", showSlider);
+		
+		var nightModeToggle = clayConfig.getItemByAppKey("useNightMode");
+		disableTimeInputs.call(nightModeToggle);
+		nightModeToggle.on("change", disableTimeInputs);
 		
 		/*var showSeconds = clayConfig.getItemByAppKey("showSeconds");
 		fontToggle.call(showSeconds);

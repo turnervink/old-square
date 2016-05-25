@@ -12,9 +12,17 @@ void check_for_night_mode() {
 	
 	if (cur_hour >= night_mode_start || cur_hour < night_mode_end) {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using night colours");
-		set_text_color(night_text_color);
-		set_background_color(night_bg_color);
-		fill_color = GColorFromHEX(night_text_color);
+		
+		if (use_night_mode) {
+			set_text_color(night_text_color);
+			set_background_color(night_bg_color);
+			fill_color = GColorFromHEX(night_text_color);
+		} else {
+			set_text_color(text_color);
+			set_background_color(bg_color);
+			fill_color = GColorFromHEX(text_color);
+		}
+		
 	} else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Using day colours");
 		set_text_color(text_color);

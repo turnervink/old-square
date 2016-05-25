@@ -28,6 +28,7 @@
 #define KEY_NIGHT_BACKGROUND_COLOR 22
 #define KEY_NIGHT_START 23
 #define KEY_NIGHT_END 24
+#define KEY_USE_NIGHT_MODE 25
 
 Window *main_window;
 
@@ -45,6 +46,7 @@ bool large_font;
 bool picked_font;
 bool show_seconds;
 bool manual_goal;
+bool use_night_mode;
 
 int text_color, night_text_color;
 int bg_color, night_bg_color;

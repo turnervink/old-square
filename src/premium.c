@@ -26,6 +26,31 @@ void load_premium_settings() {
 		if (persist_exists(KEY_MANUAL_GOAL)) {
 			manual_goal = persist_read_int(KEY_MANUAL_GOAL);
 		}
+		
+		if (persist_exists(KEY_USE_NIGHT_MODE)) {
+			use_night_mode = persist_read_int(KEY_USE_NIGHT_MODE);
+		}
+		
+		if (persist_exists(KEY_NIGHT_TEXT_COLOR)) {
+			night_text_color = persist_read_int(KEY_NIGHT_TEXT_COLOR);
+		} else {
+			night_text_color = 0x00ff00;
+		}
+	
+		if (persist_exists(KEY_NIGHT_BACKGROUND_COLOR)) {
+			night_bg_color = persist_read_int(KEY_NIGHT_BACKGROUND_COLOR);
+		} else {
+			night_bg_color = 0x000000;
+		}
+	
+		if (persist_exists(KEY_NIGHT_START)) {
+			night_mode_start = persist_read_int(KEY_NIGHT_START);
+		}
+	
+		if (persist_exists(KEY_NIGHT_END)) {
+			night_mode_end = persist_read_int(KEY_NIGHT_END);
+		}
+		
 	} else {
 		APP_LOG(APP_LOG_LEVEL_INFO, "Premium features locked");
 		// Set everything back to non-premium defaults

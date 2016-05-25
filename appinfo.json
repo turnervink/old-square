@@ -37,6 +37,7 @@
         "stepGoal": 18,
         "textColor": 0,
         "useCelsius": 6,
+        "useNightMode": 25,
         "vibeConnect": 10,
         "vibeDisconnect": 9
     },

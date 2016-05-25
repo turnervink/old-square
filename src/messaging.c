@@ -54,7 +54,8 @@ void init_appmessage() {
 	
 	int size_buffer_in = dict_calc_buffer_size(20, sizeof(char), sizeof(int8_t), sizeof(int32_t), sizeof(int8_t), sizeof(int32_t), sizeof(int32_t), 
 	sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(int32_t), 
-	sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(char), sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int16_t), sizeof(int8_t), sizeof(char), sizeof(int32_t), sizeof(int32_t), sizeof(int8_t), sizeof(int8_t));
+	sizeof(int8_t), sizeof(int8_t), sizeof(int8_t), sizeof(char), sizeof(char), sizeof(int8_t), sizeof(int8_t), sizeof(int16_t), sizeof(int8_t), sizeof(char), sizeof(int32_t), sizeof(int32_t), sizeof(int8_t), 
+	sizeof(int8_t), sizeof(int8_t));
 	
 	APP_LOG(APP_LOG_LEVEL_INFO, "Inbox size: %d", size_buffer_in);
 	
@@ -113,6 +114,7 @@ void inbox_received_callback(DictionaryIterator *iter, void *contex) {
 	Tuple *city_tup = dict_find(iter, KEY_CITY); //cstring
 	Tuple *nightstart_tup = dict_find(iter, KEY_NIGHT_START); // int8
 	Tuple *nightend_tup = dict_find(iter, KEY_NIGHT_END); //int8
+	Tuple *usenightmode_tup = dict_find(iter, KEY_USE_NIGHT_MODE); //int8
 	
 
   if (ready_tup) { // Wait for JS to be ready before requesting weather in selected language
@@ -363,6 +365,14 @@ void inbox_received_callback(DictionaryIterator *iter, void *contex) {
 		
 		if (city_tup) {
 			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_CITY received!");
+		}
+		
+		if (usenightmode_tup) {
+			APP_LOG(APP_LOG_LEVEL_INFO, "KEY_USE_NIGHT_MODE received!");
+			
+			use_night_mode = usenightmode_tup->value->int8;
+			
+			persist_write_int(KEY_USE_NIGHT_MODE, use_night_mode);
 		}
 		
 		if (night_text_color_tup) {

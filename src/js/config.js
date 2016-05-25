@@ -216,6 +216,12 @@ module.exports = [
 				"description": "Change middle bar setting to step goal under Appearance to view step progress"
 			},
 			{
+				"type": "toggle",
+				"appKey": "useNightMode",
+				"label": "Night Mode",
+				"defaultValue": false
+			},
+			{
 				"type": "input",
 				"appKey": "nightModeStart",
 				"defaultValue": 20,
